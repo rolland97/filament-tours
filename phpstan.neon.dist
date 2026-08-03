@@ -8,6 +8,9 @@ parameters:
         - config
         - database
     tmpDir: build/phpstan
-    checkOctaneCompatibility: true
-    checkModelProperties: true
+    # ⚠️ `checkOctaneCompatibility` and `checkModelProperties` were removed in
+    # larastan v3 (this package installs v3.10), and phpstan rejects unknown
+    # parameters outright — so the skeleton's own `composer analyse` failed on a
+    # fresh clone with "Unexpected item 'parameters › checkOctaneCompatibility'".
+    # Model-property checking is handled by the larastan extension in v3.
 
