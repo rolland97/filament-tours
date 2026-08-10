@@ -62,6 +62,25 @@ class TestPanelProvider extends PanelProvider
                         ->steps([
                             Step::make('[data-tour="thing"]')->title('Again')->body('Every visit.'),
                         ]),
+
+                    // Rot, staged. The middle step points at nothing, so the
+                    // client must skip it and still run the other two (FR-014).
+                    Tour::make('page-b-partial')
+                        ->when(fn (): bool => request()->boolean('partial'))
+                        ->steps([
+                            Step::make('[data-tour="thing"]')->title('First')->body('Present.'),
+                            Step::make('[data-tour="gone"]')->title('Missing')->body('Not on the page.'),
+                            Step::make('[data-tour="other"]')->title('Third')->body('Also present.'),
+                        ]),
+
+                    // Total rot: nothing resolves, so the tour must not start
+                    // at all rather than opening an empty overlay (FR-016).
+                    Tour::make('page-b-missing')
+                        ->when(fn (): bool => request()->boolean('missing'))
+                        ->steps([
+                            Step::make('[data-tour="gone"]')->title('Gone')->body('Nope.'),
+                            Step::make('[data-tour="also-gone"]')->title('Also gone')->body('Nope.'),
+                        ]),
                 ]),
             );
     }

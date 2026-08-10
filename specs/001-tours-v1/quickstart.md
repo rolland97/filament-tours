@@ -99,7 +99,7 @@ cmp.tours = [{ id: 'probe', once: false, steps: [{
   selector: '[data-tour="thing"]',
   body: '<img src=x onerror="window.__xssFired = true">',
 }]}]
-cmp.destroy(); cmp.start(cmp.tours[0])
+cmp.stopTour(); cmp.start(cmp.tours[0])   // stopTour(), not destroy(): destroy() is Alpine's hook
 // then, after the popover appears:
 window.__xssFired                                             // must be false
 document.querySelector('.driver-popover-description').textContent  // must show the tag literally
@@ -145,12 +145,18 @@ Proves SC-003.
 
 Define a three-step tour whose **middle** selector is absent.
 
-| Check | Expected |
-|---|---|
-| Tour runs | Steps 1 and 3 shown, step 2 skipped, nothing errors for the user |
-| `app.debug` on | Console warning naming the tour **and** the unmatched selector |
-| **No** selector resolves | Tour does not start; nothing shown |
-| Navigate away mid-tour | Overlay destroyed; does **not** mark seen |
+Serve the panel (see § Reproducing Gate 0) and use the seeded fixtures:
+
+| URL | Check | Expected |
+|---|---|---|
+| `/testing/page-b?partial=1` | Tour runs | Steps "First" and "Third" shown, the missing middle step skipped, nothing errors for the user |
+| `/testing/page-b?partial=1` | `app.debug` on | **Exactly one** console warning, naming the tour **and** the unmatched selector. Two warnings for one missing selector means the resolve path is being walked twice |
+| `/testing/page-b?missing=1` | **No** selector resolves | No popover, no overlay, no `driver` class on `<body>` |
+| `/testing/page-a` | Navigate away mid-tour | Dispatch `livewire:navigating`: overlay destroyed **and** localStorage still empty — leaving is not finishing (FR-012) |
+
+The last row is the subtle one. Tearing the tour down fires driver's `onDestroyed`, which is also
+how a user finishing it is detected — so without a guard, navigating away silently marks a
+run-once tour seen and the user never sees it again.
 
 ---
 
