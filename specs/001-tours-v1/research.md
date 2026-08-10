@@ -182,6 +182,7 @@ Listed here because the tasks phase must delete them, not build on them (AGENTS.
 | 8 | `src/FilamentTours.php` + `Facades/FilamentTours.php` + the `extra.laravel.aliases` entry | A facade over an empty class. The public surface is the plugin and the value objects (R-020). |
 | 9 | `tests/ExampleTest.php`, `tests/DebugTest.php` | Skeleton stubs. |
 | 10 | `resources/js/index.js` empty, `resources/dist/` holds only `.gitkeep` | Nothing is built yet — the spike's starting point. |
+| 11 | `config/tours.php` was **never loaded** | Found during T003, after this research was written. The provider guards on `file_exists($package->basePath("/../config/{$configFileName}.php"))` where `$configFileName = $package->shortName()`. `shortName()` is `Str::after($name, 'laravel-')`, and `filament-tours` contains no `laravel-`, so it returns `filament-tours` unchanged. The guard looked for `config/filament-tours.php`, which did not exist, so `hasConfigFile()` never fired and `config('filament-tours.state')` returned `null`. Fixed by renaming the file to match. Proven by a failing test first — the assertion read `Failed asserting that null is identical to 'local'`. |
 
 **Sequencing note**: #1, #3, #6 and the `hasMigrations()` call are one atomic change — removing the
 stub without removing `defineDatabaseMigrations()` breaks the suite.

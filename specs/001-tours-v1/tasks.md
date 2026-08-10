@@ -34,10 +34,10 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 **Purpose**: Get the toolchain to a state where the spike can run at all.
 
-- [ ] T001 Run `npm install` to create `node_modules/` — it does not exist in this checkout (research R4)
-- [ ] T002 Add `driver.js` as a pinned devDependency in `package.json` and install it (design D7, research R4)
-- [ ] T003 [P] Replace the empty `config/tours.php` with `['state' => 'local']` per `contracts/php-api.md`
-- [ ] T004 [P] Create the minimal Testbench panel harness in `tests/Panel/TestPanelProvider.php` with two pages, `tests/Panel/Pages/PageA.php` and `tests/Panel/Pages/PageB.php`, so matching and non-matching pages both exist
+- [X] T001 Run `npm install` to create `node_modules/` — it does not exist in this checkout (research R4)
+- [X] T002 Add `driver.js` as a pinned devDependency in `package.json` and install it (design D7, research R4)
+- [X] T003 [P] Replace the empty `config/tours.php` with `config/filament-tours.php` holding `['state' => 'local']` per `contracts/php-api.md`. **The rename is required, not cosmetic**: the provider guards on `file_exists(config/{shortName}.php)` and `shortName()` returns `filament-tours` (there is no `laravel-` prefix to strip), so `config/tours.php` never matched, `hasConfigFile()` never fired, and `config('filament-tours.state')` was null — research R8 #11
+- [X] T004 [P] Create the minimal Testbench panel harness in `tests/Panel/TestPanelProvider.php` with two pages, `tests/Panel/Pages/PageA.php` and `tests/Panel/Pages/PageB.php`, so matching and non-matching pages both exist
 
 **Checkpoint**: `npm run build` executes and a Testbench panel boots.
 

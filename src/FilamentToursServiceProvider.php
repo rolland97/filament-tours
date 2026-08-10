@@ -10,11 +10,11 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
+use Rolland\FilamentTours\Commands\FilamentToursCommand;
+use Rolland\FilamentTours\Testing\TestsFilamentTours;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Rolland\FilamentTours\Commands\FilamentToursCommand;
-use Rolland\FilamentTours\Testing\TestsFilamentTours;
 
 class FilamentToursServiceProvider extends PackageServiceProvider
 {
