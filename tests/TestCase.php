@@ -18,8 +18,9 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as Orchestra;
-use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Rolland\FilamentTours\FilamentToursServiceProvider;
+use Rolland\FilamentTours\Tests\Panel\TestPanelProvider;
+use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -52,6 +53,7 @@ class TestCase extends Orchestra
             TablesServiceProvider::class,
             WidgetsServiceProvider::class,
             FilamentToursServiceProvider::class,
+            TestPanelProvider::class,
         ];
 
         sort($providers);
@@ -62,6 +64,11 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app): void
     {
         $app['config']->set('database.default', 'testing');
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+
+        // The test panel's pages render a blade that lives with them, not in
+        // the package — resources/views is for what ships.
+        $app['view']->addNamespace('filament-tours-tests', __DIR__ . '/Panel/views');
     }
 
     protected function defineDatabaseMigrations(): void
