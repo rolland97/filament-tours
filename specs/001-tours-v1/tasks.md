@@ -245,8 +245,8 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 **Covers**: SC-008. **CD-4 — must land before the first release tag.**
 
-- [ ] T079 [P] [US6] Add `/.specify`, `/.claude`, `/AGENTS.md`, `/specs`, `/bin`, `/resources/js`, `/resources/css` as `export-ignore` entries in `.gitattributes`. Measured: 70 tracked files across `.specify` + `.claude` alone, currently bound for every consumer's `vendor/`
-- [ ] T080 [US6] Verify with `git archive --format=tar HEAD | tar -t | sort` that development tooling and build sources are absent and that `src/`, `config/`, `resources/views/`, and `resources/dist/` are **present** — `resources/dist` must stay shipped, it is the built asset consumers need
+- [X] T079 [P] [US6] Add `/.specify`, `/.claude`, `/AGENTS.md`, `/specs`, `/bin`, `/resources/js`, `/resources/css` as `export-ignore` entries in `.gitattributes`. Measured: 70 tracked files across `.specify` + `.claude` alone, currently bound for every consumer's `vendor/`
+- [X] T080 [US6] Verify with `git archive --format=tar HEAD | tar -t | sort` that development tooling and build sources are absent and that `src/`, `config/`, `resources/views/`, and `resources/dist/` are **present** — `resources/dist` must stay shipped, it is the built asset consumers need
 
 **Checkpoint**: SC-008 satisfied. Safe to tag.
 
