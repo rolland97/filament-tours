@@ -176,8 +176,9 @@ tests/
 ```
 
 **Two assets, not one.** The tour engine ships a stylesheet; an unstyled tour is not a working
-tour. `bin/build.js` must emit `resources/dist/filament-tours.css` alongside the component, and
-`getAssets()` must register both. The blade markup must not depend on the host's Tailwind build —
+tour. `bin/build.js` emits `resources/dist/components/filament-tours.css` alongside the component
+— esbuild puts a CSS import's output next to the entry point's `outfile` — and `getAssets()`
+registers both. The blade markup must not depend on the host's Tailwind build —
 utility classes there would force consumers to edit their panel theme, contradicting SC-004. See
 [`contracts/payload.md`](./contracts/payload.md) § Styling.
 

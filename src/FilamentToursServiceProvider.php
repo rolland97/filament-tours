@@ -5,7 +5,6 @@ namespace Rolland\FilamentTours;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
-use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
@@ -100,9 +99,11 @@ class FilamentToursServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('filament-tours', __DIR__ . '/../resources/dist/components/filament-tours.js'),
-            // Css::make('filament-tours-styles', __DIR__ . '/../resources/dist/filament-tours.css'),
-            // Js::make('filament-tours-scripts', __DIR__ . '/../resources/dist/filament-tours.js'),
+            AlpineComponent::make('filament-tours', __DIR__ . '/../resources/dist/components/filament-tours.js'),
+            // esbuild emits the stylesheet next to the entry point's outfile, so it
+            // lands in components/ too. Registered from where the build puts it,
+            // not from where a plan guessed it would.
+            Css::make('filament-tours', __DIR__ . '/../resources/dist/components/filament-tours.css'),
         ];
     }
 
