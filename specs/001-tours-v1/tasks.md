@@ -49,17 +49,17 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 **⚠️ THIS PHASE BLOCKS EVERYTHING BELOW IT.** This is CD-3 and **SC-009**. Use a hardcoded tour, inline in the hook — no `Tour`, no `Step`, no registry. If T007 fails, **stop and re-plan**: the resolution strategy in research R2 is the assumption the rest of the plan rests on.
 
-- [ ] T005 [P] Write the failing test asserting a `BODY_END` render hook registered by the plugin emits markup into the response on a panel page, in `tests/RenderHookTest.php`
-- [ ] T006 [P] Write the failing test asserting the hook emits **nothing** on a page the hardcoded tour does not target, in `tests/RenderHookTest.php`
-- [ ] T007 Write the failing test asserting the hook callback receives `array $scopes` containing the **current page's class** — the design §6 tripwire in its verified form (research R2) — in `tests/PageClassResolutionTest.php`
-- [ ] T008 Register a `BODY_END` render hook in `FilamentToursPlugin::register()` in `src/FilamentToursPlugin.php`, emitting a hardcoded payload, to make T005–T007 pass
-- [ ] T009 Write a minimal Alpine component importing driver.js in `resources/js/index.js`, which is currently empty (0 bytes)
-- [ ] T010 Settle the asset path conflict: `bin/build.js` writes `resources/dist/filament-tours.js` while the provider's commented registration expects `resources/dist/components/filament-tours.js` (research R3). Change `outfile` in `bin/build.js` to the `components/` path
-- [ ] T011 Uncomment and correct the `AlpineComponent` registration in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, pointing at the path settled in T010
-- [ ] T012 Write the failing test asserting **both** registered assets — component and stylesheet — resolve to files that exist on disk after a build, in `tests/AssetRegistrationTest.php`. It must fail on the stylesheet, which does not exist yet
-- [ ] T013 Import the tour engine's stylesheet in `resources/js/index.js` and confirm `bin/build.js` emits `resources/dist/filament-tours.css` alongside the component — **an unstyled tour is not a working tour** (SC-004, `contracts/payload.md` § Styling)
-- [ ] T014 Register the stylesheet as a `Css` asset in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, alongside the `AlpineComponent`, making T012 pass
-- [ ] T015 Run `npm run build` and commit the built output under `resources/dist/`
+- [X] T005 [P] Write the failing test asserting a `BODY_END` render hook registered by the plugin emits markup into the response on a panel page, in `tests/RenderHookTest.php`
+- [X] T006 [P] Write the failing test asserting the hook emits **nothing** on a page the hardcoded tour does not target, in `tests/RenderHookTest.php`
+- [X] T007 Write the failing test asserting the hook callback receives `array $scopes` containing the **current page's class** — the design §6 tripwire in its verified form (research R2) — in `tests/PageClassResolutionTest.php`
+- [X] T008 Register a `BODY_END` render hook in `FilamentToursPlugin::register()` in `src/FilamentToursPlugin.php`, emitting a hardcoded payload, to make T005–T007 pass
+- [X] T009 Write a minimal Alpine component importing driver.js in `resources/js/index.js`, which is currently empty (0 bytes)
+- [X] T010 Settle the asset path conflict: `bin/build.js` writes `resources/dist/filament-tours.js` while the provider's commented registration expects `resources/dist/components/filament-tours.js` (research R3). Change `outfile` in `bin/build.js` to the `components/` path
+- [X] T011 Uncomment and correct the `AlpineComponent` registration in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, pointing at the path settled in T010
+- [X] T012 Write the failing test asserting **both** registered assets — component and stylesheet — resolve to files that exist on disk after a build, in `tests/AssetRegistrationTest.php`. It must fail on the stylesheet, which does not exist yet
+- [X] T013 Import the tour engine's stylesheet in `resources/js/index.js` and confirm `bin/build.js` emits it alongside the component — **an unstyled tour is not a working tour** (SC-004, `contracts/payload.md` § Styling). Actual output is `resources/dist/components/filament-tours.css`, **not** the `resources/dist/filament-tours.css` this task originally predicted: esbuild places a CSS import's output next to the entry point's `outfile`
+- [X] T014 Register the stylesheet as a `Css` asset in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, alongside the `AlpineComponent`, making T012 pass
+- [X] T015 Run `npm run build` and commit the built output under `resources/dist/`
 - [ ] T016 Verify driver.js boots **and is styled** in a real browser against real Filament markup, using the Testbench panel — the one step no PHP test can cover (design §8 names this gap)
 
 **Checkpoint / Gate 0**: Hook fires, scopes carry the page class, both assets resolve, the engine runs styled. **SC-009 satisfied.** Only now may value objects and the registry be built.

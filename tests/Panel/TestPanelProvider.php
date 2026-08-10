@@ -4,6 +4,7 @@ namespace Rolland\FilamentTours\Tests\Panel;
 
 use Filament\Panel;
 use Filament\PanelProvider;
+use Rolland\FilamentTours\FilamentToursPlugin;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageB;
 
@@ -25,6 +26,11 @@ class TestPanelProvider extends PanelProvider
             ->pages([
                 PageA::class,
                 PageB::class,
-            ]);
+            ])
+            ->plugin(
+                FilamentToursPlugin::make()->tours([
+                    ['id' => 'spike-tour', 'for' => PageA::class],
+                ]),
+            );
     }
 }

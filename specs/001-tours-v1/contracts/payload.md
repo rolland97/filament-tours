@@ -101,7 +101,12 @@ Two registered assets are therefore required, not one:
 | Asset | Source | Purpose |
 |---|---|---|
 | `AlpineComponent` | `resources/dist/components/filament-tours.js` | The component and the bundled engine |
-| `Css` | `resources/dist/filament-tours.css` | The engine's stylesheet, emitted by the same build |
+| `Css` | `resources/dist/components/filament-tours.css` | The engine's stylesheet, emitted by the same build |
+
+The stylesheet path was **corrected from what this contract originally predicted**
+(`resources/dist/filament-tours.css`). esbuild emits a CSS import's output next to the entry
+point's `outfile`, so it lands in `components/` alongside the script. Registered from where the
+build puts it, not from where the plan guessed — verified by building.
 
 **The blade template MUST NOT depend on the host's Tailwind build.** If the render-hook markup uses
 utility classes, consumers must add a `@source` line to their panel theme to make them survive
