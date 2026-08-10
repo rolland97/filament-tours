@@ -28,8 +28,30 @@ class FilamentToursPlugin implements Plugin
         return $this;
     }
 
+    /**
+     * The container key holding a panel's registry.
+     *
+     * Per-panel because the plugin is per-panel, and shared because the registry
+     * holds definitions only — predicates are evaluated inside resolveFor(), at
+     * request time, not here.
+     */
+    public static function registryKey(string $panelId): string
+    {
+        return "filament-tours.registry.{$panelId}";
+    }
+
     public function register(Panel $panel): void
     {
+        app()->singleton(
+            static::registryKey($panel->getId()),
+            function (): TourRegistry {
+                $registry = new TourRegistry($this->resolveState());
+                $registry->register(...$this->tours);
+
+                return $registry;
+            },
+        );
+
         $panel->renderHook(
             PanelsRenderHook::BODY_END,
             /** @param array<string> $scopes */
@@ -60,10 +82,8 @@ class FilamentToursPlugin implements Plugin
      */
     protected function render(Panel $panel, array $scopes): View
     {
-        // Built per request, not per panel: predicates are evaluated during
-        // resolveFor(), and they read request state.
-        $registry = new TourRegistry($this->resolveState());
-        $registry->register(...$this->tours);
+        /** @var TourRegistry $registry */
+        $registry = app(static::registryKey($panel->getId()));
 
         return view('filament-tours::tours', [
             'payload' => [

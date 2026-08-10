@@ -155,10 +155,31 @@ browser-local persistence.
 ## Console
 
 ```
-php artisan tours:list
+php artisan tours:list [--panel=]
 ```
 
-Table of every registered tour: id, page class or `when()`, step count, `once` (FR-018, SC-006).
+Every registered tour: id, page class or `when()`, step count, `once` (FR-018, SC-006).
+`--panel` defaults to the panel Filament reports as default.
+
+**Not rendered as a table.** Symfony wraps table cells to the terminal width, which splits a
+fully-qualified page class across lines and makes it impossible to copy or grep — the one thing a
+developer reading this list wants. One contiguous line per field instead.
 
 **Does not validate selectors** and must not imply it does. A selector cannot be checked without a
 browser; an honest listing beats a validator that overpromises (design §7).
+
+---
+
+## Addition to the frozen surface
+
+`FilamentToursPlugin::registryKey(string $panelId): string` — the container key under which a
+panel's `TourRegistry` is bound.
+
+**This extends the v1 surface** that AGENTS.md **R-020** freezes, so it is recorded here rather
+than left implicit. It exists because `tours:list` must reach a panel's registry from the console,
+and every alternative was worse: exposing the tours array widens the definition API that hosts
+actually use, and binding `TourRegistry::class` unqualified would silently collide the moment an
+application registers the plugin on a second panel.
+
+Hosts have no reason to call it. It is public because the command is a separate class, not because
+it is offered as a feature.

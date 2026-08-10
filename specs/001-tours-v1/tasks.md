@@ -222,16 +222,16 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 5 ⚠️ write first, confirm they fail
 
-- [ ] T072 [P] [US5] Test that a duplicate tour id throws `InvalidArgumentException` naming the offending tour (FR-017), in `tests/TourRegistryTest.php`
-- [ ] T073 [P] [US5] Test that a tour with zero steps throws, naming the tour, in `tests/TourRegistryTest.php`
-- [ ] T074 [P] [US5] Test that `->for()` naming a non-existent class throws, naming the tour and the missing class, in `tests/TourRegistryTest.php`
-- [ ] T075 [P] [US5] Test that `tours:list` outputs id, page or `when()`, step count, and `once` for every registered tour, **and that its output makes no claim about selector validity** — a selector cannot be checked without a browser (SC-006, design §7) — in `tests/ListToursCommandTest.php`
+- [X] T072 [P] [US5] Test that a duplicate tour id throws `InvalidArgumentException` naming the offending tour (FR-017), in `tests/TourRegistryTest.php`
+- [X] T073 [P] [US5] Test that a tour with zero steps throws, naming the tour, in `tests/TourRegistryTest.php`
+- [X] T074 [P] [US5] Test that `->for()` naming a non-existent class throws, naming the tour and the missing class, in `tests/TourRegistryTest.php`
+- [X] T075 [P] [US5] Test that `tours:list` outputs id, page or `when()`, step count, and `once` for every registered tour, **and that its output makes no claim about selector validity** — a selector cannot be checked without a browser (SC-006, design §7) — in `tests/ListToursCommandTest.php`
 
 ### Implementation for User Story 5
 
-- [ ] T076 [US5] Add registration-time validation to `TourRegistry::register()` in `src/TourRegistry.php` — duplicate id, empty steps, `class_exists()` — each throwing with the tour named
-- [ ] T077 [US5] Create `ListToursCommand` in `src/Commands/ListToursCommand.php` as `tours:list`, and delete the placeholder `src/Commands/FilamentToursCommand.php`
-- [ ] T078 [US5] Update `getCommands()` in `src/FilamentToursServiceProvider.php` to register `ListToursCommand`
+- [X] T076 [US5] Add registration-time validation to `TourRegistry::register()` in `src/TourRegistry.php` — duplicate id, empty steps, `class_exists()` — each throwing with the tour named
+- [X] T077 [US5] Create `ListToursCommand` in `src/Commands/ListToursCommand.php` as `tours:list`, and delete the placeholder `src/Commands/FilamentToursCommand.php`
+- [X] T078 [US5] Update `getCommands()` in `src/FilamentToursServiceProvider.php` to register `ListToursCommand`
 
 **Checkpoint**: Typos fail loudly at registration; the panel's tours are inventoried.
 
