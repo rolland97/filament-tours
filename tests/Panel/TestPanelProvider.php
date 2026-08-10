@@ -17,6 +17,15 @@ use Rolland\FilamentTours\Tests\Panel\Pages\PageB;
  */
 class TestPanelProvider extends PanelProvider
 {
+    /**
+     * Registered here, not in TestCase, so the panel also works under
+     * `testbench serve` — TestCase::getEnvironmentSetUp never runs there.
+     */
+    public function boot(): void
+    {
+        $this->loadViewsFrom(__DIR__ . '/views', 'filament-tours-tests');
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel

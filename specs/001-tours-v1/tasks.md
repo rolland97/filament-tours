@@ -60,7 +60,7 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 - [X] T013 Import the tour engine's stylesheet in `resources/js/index.js` and confirm `bin/build.js` emits it alongside the component — **an unstyled tour is not a working tour** (SC-004, `contracts/payload.md` § Styling). Actual output is `resources/dist/components/filament-tours.css`, **not** the `resources/dist/filament-tours.css` this task originally predicted: esbuild places a CSS import's output next to the entry point's `outfile`
 - [X] T014 Register the stylesheet as a `Css` asset in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, alongside the `AlpineComponent`, making T012 pass
 - [X] T015 Run `npm run build` and commit the built output under `resources/dist/`
-- [ ] T016 Verify driver.js boots **and is styled** in a real browser against real Filament markup, using the Testbench panel — the one step no PHP test can cover (design §8 names this gap)
+- [X] T016 Verify driver.js boots **and is styled** in a real browser against real Filament markup, using the Testbench panel — the one step no PHP test can cover (design §8 names this gap). **Done via Playwright against `testbench serve`**, not by a human at a screen: on PageA the popover, overlay and `.driver-active-element` are present with `driver.css` applied (`position: fixed`, `z-index: 1000000000`); on PageB none of them appear and the HTML contains no trace of the tour. See `quickstart.md` § Reproducing Gate 0 in a browser
 
 **Checkpoint / Gate 0**: Hook fires, scopes carry the page class, both assets resolve, the engine runs styled. **SC-009 satisfied.** Only now may value objects and the registry be built.
 

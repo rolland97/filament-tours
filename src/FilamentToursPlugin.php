@@ -4,6 +4,7 @@ namespace Rolland\FilamentTours;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Filament\Support\Facades\FilamentAsset;
 use Filament\View\PanelsRenderHook;
 
 class FilamentToursPlugin implements Plugin
@@ -49,10 +50,21 @@ class FilamentToursPlugin implements Plugin
             fn (array $tour): bool => in_array($tour['for'], $scopes, true),
         ));
 
+        // Spike scaffolding. T038 replaces this with resources/views/tours.blade.php
+        // and a real payload; the scopes attribute is instrumentation and goes then.
+        $payload = [
+            'tours' => array_column($applicable, 'id'),
+            'steps' => $applicable === [] ? [] : [
+                ['element' => '[data-tour="thing"]', 'popover' => ['title' => 'Thing', 'description' => 'This is the thing.']],
+                ['element' => '[data-tour="other"]', 'popover' => ['title' => 'Other', 'description' => 'And the other.']],
+            ],
+        ];
+
         return sprintf(
-            '<div data-filament-tours data-filament-tours-scopes="%s" data-filament-tours-payload="%s"></div>',
+            '<div data-filament-tours data-filament-tours-scopes="%s" x-load x-load-src="%s" x-data="filamentTours(%s)"></div>',
             e(implode(',', $scopes)),
-            e((string) json_encode(array_column($applicable, 'id'))),
+            e(FilamentAsset::getAlpineComponentSrc('filament-tours', 'rolland97/filament-tours')),
+            e((string) json_encode($payload)),
         );
     }
 
