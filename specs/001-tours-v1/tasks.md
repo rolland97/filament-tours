@@ -12,9 +12,11 @@ description: "Task list for 001-tours-v1 — guided product tours for Filament p
 
 **Organization**: Grouped by user story so each is independently implementable and testable.
 
-> **Revised 2026-08-10 after `/speckit-analyze`.** Five tasks added and the whole list renumbered:
-> driver.js CSS bundling (T012, T013 — was missing entirely), and tests for FR-026, FR-025, and
-> SC-004 (T036, T057, T044). Task IDs from the pre-analysis version are **not** stable.
+> **Revised twice on 2026-08-10.** First after `/speckit-analyze`: five tasks added for the missing
+> driver.js stylesheet and for the FR-025, FR-026 and SC-004 coverage gaps. Then after the
+> `before_implement` gate, which found two test-first violations in the list itself — the asset
+> test was ordered *after* the code it tests, and `LocalStorageState` had no focused test. Task IDs
+> from earlier versions are **not** stable.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -54,9 +56,9 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 - [ ] T009 Write a minimal Alpine component importing driver.js in `resources/js/index.js`, which is currently empty (0 bytes)
 - [ ] T010 Settle the asset path conflict: `bin/build.js` writes `resources/dist/filament-tours.js` while the provider's commented registration expects `resources/dist/components/filament-tours.js` (research R3). Change `outfile` in `bin/build.js` to the `components/` path
 - [ ] T011 Uncomment and correct the `AlpineComponent` registration in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, pointing at the path settled in T010
-- [ ] T012 Import the tour engine's stylesheet in `resources/js/index.js` and confirm `bin/build.js` emits `resources/dist/filament-tours.css` alongside the component — **an unstyled tour is not a working tour** (SC-004, `contracts/payload.md` § Styling)
-- [ ] T013 Register the stylesheet as a `Css` asset in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, alongside the `AlpineComponent`
-- [ ] T014 Write the failing test asserting **both** registered assets — component and stylesheet — resolve to files that exist on disk after a build, in `tests/AssetRegistrationTest.php`
+- [ ] T012 Write the failing test asserting **both** registered assets — component and stylesheet — resolve to files that exist on disk after a build, in `tests/AssetRegistrationTest.php`. It must fail on the stylesheet, which does not exist yet
+- [ ] T013 Import the tour engine's stylesheet in `resources/js/index.js` and confirm `bin/build.js` emits `resources/dist/filament-tours.css` alongside the component — **an unstyled tour is not a working tour** (SC-004, `contracts/payload.md` § Styling)
+- [ ] T014 Register the stylesheet as a `Css` asset in `FilamentToursServiceProvider::getAssets()` in `src/FilamentToursServiceProvider.php`, alongside the `AlpineComponent`, making T012 pass
 - [ ] T015 Run `npm run build` and commit the built output under `resources/dist/`
 - [ ] T016 Verify driver.js boots **and is styled** in a real browser against real Filament markup, using the Testbench panel — the one step no PHP test can cover (design §8 names this gap)
 
@@ -99,26 +101,27 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 - [ ] T028 [P] [US1] Test that a non-matching tour contributes **nothing** to the response — not its id, not its copy, not its selectors (SC-002) — in `tests/RenderHookTest.php`
 - [ ] T029 [P] [US1] Test the payload shape against `contracts/payload.md`: `panel`, `debug`, `seenEndpoint`, ordered `tours`, and that predicates and page classes are **absent**, in `tests/PayloadTest.php`
 - [ ] T030 [P] [US1] Test that tour copy is escaped — markup in `title`/`body` appears literally (FR-028, SC-010) — in `tests/PayloadTest.php`
+- [ ] T031 [P] [US1] Test that `LocalStorageState::hasSeen()` returns false for **any** tour id and that `markSeen()` writes nothing — the browser holds the answer under this driver, so the server answering otherwise would be a lie (FR-020, data-model.md) — in `tests/StateDriverTest.php`
 
 ### Implementation for User Story 1
 
-- [ ] T031 [P] [US1] Create the `Step` value object in `src/Step.php` per `data-model.md` and `contracts/php-api.md`
-- [ ] T032 [P] [US1] Create the `Tour` value object in `src/Tour.php` per `data-model.md` and `contracts/php-api.md`
-- [ ] T033 [P] [US1] Create the `TourState` interface in `src/Contracts/TourState.php`
-- [ ] T034 [US1] Create `LocalStorageState` in `src/State/LocalStorageState.php` — `hasSeen()` returns false unconditionally by design, `markSeen()` is a no-op (data-model.md)
-- [ ] T035 [US1] Create `TourRegistry` in `src/TourRegistry.php` with `register()`, `all()`, and `resolveFor(array $scopes)`, preserving registration order (FR-011)
-- [ ] T036 [US1] Add `->tours(array $tours)` to `src/FilamentToursPlugin.php` and bind the registry as a per-panel singleton in `register()`
-- [ ] T037 [US1] Create the render-hook view in `resources/views/tours.blade.php`, emitting the escaped payload as the Alpine component's initial state. **No Tailwind utility classes** — they would force consumers to edit their panel theme, contradicting SC-004 (`contracts/payload.md` § Styling)
-- [ ] T038 [US1] Emit the `debug` flag in the payload from `resources/views/tours.blade.php`, mirroring the application's debug state — the browser cannot read it itself and every console diagnostic depends on it (FR-015)
-- [ ] T039 [US1] Replace the spike's hardcoded payload in `src/FilamentToursPlugin.php` with `TourRegistry::resolveFor($scopes)`, reading scopes from the hook callback (research R2)
-- [ ] T040 [US1] Implement the Alpine component startup sequence in `resources/js/index.js` per `contracts/js-events.md`: empty payload → do nothing; otherwise auto-start the first eligible tour
-- [ ] T041 [US1] Implement localStorage seen handling under key `filament-tours:{panel}:{tour}` in `resources/js/index.js`, writing on finish **and** on dismiss
-- [ ] T042 [US1] Run `npm run build` and commit the updated `resources/dist/`
+- [ ] T032 [P] [US1] Create the `Step` value object in `src/Step.php` per `data-model.md` and `contracts/php-api.md`
+- [ ] T033 [P] [US1] Create the `Tour` value object in `src/Tour.php` per `data-model.md` and `contracts/php-api.md`
+- [ ] T034 [P] [US1] Create the `TourState` interface in `src/Contracts/TourState.php`
+- [ ] T035 [US1] Create `LocalStorageState` in `src/State/LocalStorageState.php` — `hasSeen()` returns false unconditionally by design, `markSeen()` is a no-op (data-model.md), making T031 pass
+- [ ] T036 [US1] Create `TourRegistry` in `src/TourRegistry.php` with `register()`, `all()`, and `resolveFor(array $scopes)`, preserving registration order (FR-011)
+- [ ] T037 [US1] Add `->tours(array $tours)` to `src/FilamentToursPlugin.php` and bind the registry as a per-panel singleton in `register()`
+- [ ] T038 [US1] Create the render-hook view in `resources/views/tours.blade.php`, emitting the escaped payload as the Alpine component's initial state. **No Tailwind utility classes** — they would force consumers to edit their panel theme, contradicting SC-004 (`contracts/payload.md` § Styling)
+- [ ] T039 [US1] Emit the `debug` flag in the payload from `resources/views/tours.blade.php`, mirroring the application's debug state — the browser cannot read it itself and every console diagnostic depends on it (FR-015)
+- [ ] T040 [US1] Replace the spike's hardcoded payload in `src/FilamentToursPlugin.php` with `TourRegistry::resolveFor($scopes)`, reading scopes from the hook callback (research R2)
+- [ ] T041 [US1] Implement the Alpine component startup sequence in `resources/js/index.js` per `contracts/js-events.md`: empty payload → do nothing; otherwise auto-start the first eligible tour
+- [ ] T042 [US1] Implement localStorage seen handling under key `filament-tours:{panel}:{tour}` in `resources/js/index.js`, writing on finish **and** on dismiss
+- [ ] T043 [US1] Run `npm run build` and commit the updated `resources/dist/`
 
 ### Verification for User Story 1
 
-- [ ] T043 [P] [US1] Test that a tour **without** the run-once flag remains in the payload and auto-starts on a repeat visit, while a run-once tour does not — the flag is persistence, **not** a trigger (FR-026) — in `tests/PayloadTest.php`
-- [ ] T044 [US1] Verify the consumer install path end to end (SC-004): install the package into a scratch Laravel + Filament application, register the plugin and one tour, run `php artisan filament:assets`, and confirm a working, styled tour appears **without touching npm, a bundler, or the panel theme**. Record the result in the PR description
+- [ ] T044 [P] [US1] Test that a tour **without** the run-once flag remains in the payload and auto-starts on a repeat visit, while a run-once tour does not — the flag is persistence, **not** a trigger (FR-026) — in `tests/PayloadTest.php`
+- [ ] T045 [US1] Verify the consumer install path end to end (SC-004): install the package into a scratch Laravel + Filament application, register the plugin and one tour, run `php artisan filament:assets`, and confirm a working, styled tour appears **without touching npm, a bundler, or the panel theme**. Record the result in the PR description
 
 **Checkpoint**: MVP. A tour defined in a panel provider runs once and only once, leaks onto nothing, and installs clean.
 
@@ -134,16 +137,16 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 2 ⚠️ write first, confirm they fail
 
-- [ ] T045 [P] [US2] Test that a tour with no resolvable steps does not start and shows nothing (FR-016), in `tests/RenderHookTest.php`
+- [ ] T046 [P] [US2] Test that a tour with no resolvable steps does not start and shows nothing (FR-016), in `tests/RenderHookTest.php`
 
-> The remaining US2 behaviour is client-side and has **no PHP test**. This is the named gap in design §8, constitution **Principle I**, and **R-009** — verified manually via T049 and by the first consumer's browser journey. Do not add a JS test toolchain for it without an explicit decision.
+> The remaining US2 behaviour is client-side and has **no PHP test**. This is the named gap in design §8, constitution **Principle I**, and **R-009** — verified manually via T050 and by the first consumer's browser journey. Do not add a JS test toolchain for it without an explicit decision.
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Implement selector filtering in `resources/js/index.js` — drop steps whose selector does not resolve, keep the rest running (FR-014)
-- [ ] T047 [US2] Implement the debug-gated console warning naming tour and unmatched selector in `resources/js/index.js`, reading the payload's `debug` flag (FR-015, SC-003)
-- [ ] T048 [US2] Implement `livewire:navigating` teardown in `resources/js/index.js` — destroy any live tour, and do **not** mark it seen (FR-012)
-- [ ] T049 [US2] Run `npm run build`, commit `resources/dist/`, and manually verify Gate 2 in [quickstart.md](./quickstart.md) in a browser: missing middle step, no-steps-resolve, and mid-tour navigation
+- [ ] T047 [US2] Implement selector filtering in `resources/js/index.js` — drop steps whose selector does not resolve, keep the rest running (FR-014)
+- [ ] T048 [US2] Implement the debug-gated console warning naming tour and unmatched selector in `resources/js/index.js`, reading the payload's `debug` flag (FR-015, SC-003)
+- [ ] T049 [US2] Implement `livewire:navigating` teardown in `resources/js/index.js` — destroy any live tour, and do **not** mark it seen (FR-012)
+- [ ] T050 [US2] Run `npm run build`, commit `resources/dist/`, and manually verify Gate 2 in [quickstart.md](./quickstart.md) in a browser: missing middle step, no-steps-resolve, and mid-tour navigation
 
 **Checkpoint**: A rotted tour degrades quietly for users and loudly for developers.
 
@@ -159,20 +162,20 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 3 ⚠️ write first, confirm they fail
 
-- [ ] T050 [P] [US3] Test that two tours matching one page both appear in the payload, in registration order (FR-011, FR-024), in `tests/PayloadTest.php`
-- [ ] T051 [P] [US3] Test that `StartTourAction::make('id')` renders and dispatches the `filament-tours:start` event with the correct tour id, in `tests/StartTourActionTest.php`
+- [ ] T051 [P] [US3] Test that two tours matching one page both appear in the payload, in registration order (FR-011, FR-024), in `tests/PayloadTest.php`
+- [ ] T052 [P] [US3] Test that `StartTourAction::make('id')` renders and dispatches the `filament-tours:start` event with the correct tour id, in `tests/StartTourActionTest.php`
 
 ### Implementation for User Story 3
 
-- [ ] T052 [P] [US3] Create `StartTourAction` in `src/Actions/StartTourAction.php` per `contracts/php-api.md`, dispatching `filament-tours:start`
-- [ ] T053 [US3] Implement the `filament-tours:start` listener in `resources/js/index.js` per `contracts/js-events.md`: run regardless of seen state, destroy any running tour first, do not re-mark seen
-- [ ] T054 [US3] Handle an unknown tour id in `resources/js/index.js` — nothing starts, no user-facing error, console warning under debug
-- [ ] T055 [US3] Enforce single auto-start in `resources/js/index.js` — scan the ordered payload and start only the first eligible tour (FR-024, FR-027)
-- [ ] T056 [US3] Run `npm run build` and commit the updated `resources/dist/`
+- [ ] T053 [P] [US3] Create `StartTourAction` in `src/Actions/StartTourAction.php` per `contracts/php-api.md`, dispatching `filament-tours:start`
+- [ ] T054 [US3] Implement the `filament-tours:start` listener in `resources/js/index.js` per `contracts/js-events.md`: run regardless of seen state, destroy any running tour first, do not re-mark seen
+- [ ] T055 [US3] Handle an unknown tour id in `resources/js/index.js` — nothing starts, no user-facing error, console warning under debug
+- [ ] T056 [US3] Enforce single auto-start in `resources/js/index.js` — scan the ordered payload and start only the first eligible tour (FR-024, FR-027)
+- [ ] T057 [US3] Run `npm run build` and commit the updated `resources/dist/`
 
 ### Verification for User Story 3
 
-- [ ] T057 [US3] Manually verify Gate 3 in [quickstart.md](./quickstart.md) in a browser: with two tours matching one page, the first auto-starts and the **second** can then be started by id without reloading (FR-025, spec User Story 3 scenario 4)
+- [ ] T058 [US3] Manually verify Gate 3 in [quickstart.md](./quickstart.md) in a browser: with two tours matching one page, the first auto-starts and the **second** can then be started by id without reloading (FR-025, spec User Story 3 scenario 4)
 
 **Checkpoint**: Replay works; two overlays are never open at once.
 
@@ -188,22 +191,22 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 4 ⚠️ write first, confirm they fail
 
-- [ ] T058 [P] [US4] Test that **no** seen route is registered under `'state' => 'local'`, by inspecting the route list (FR-020) — the absence assertion — in `tests/SeenRouteTest.php`
-- [ ] T059 [P] [US4] Test that exactly one route is registered under a host driver, behind the panel's auth middleware (FR-021), in `tests/SeenRouteTest.php`
-- [ ] T060 [P] [US4] Test that an unknown tour id returns 404 and **never** reaches the driver (`contracts/http.md`), in `tests/SeenRouteTest.php`
-- [ ] T061 [P] [US4] Test that a driver reporting a tour seen causes it to be filtered from the payload **before render**, so its copy never reaches the browser (FR-008), in `tests/TourRegistryTest.php`
-- [ ] T062 [P] [US4] Test that an invalid `filament-tours.state` value fails loudly at boot rather than silently falling back to `'local'` (`contracts/php-api.md`), in `tests/StateDriverTest.php`
+- [ ] T059 [P] [US4] Test that **no** seen route is registered under `'state' => 'local'`, by inspecting the route list (FR-020) — the absence assertion — in `tests/SeenRouteTest.php`
+- [ ] T060 [P] [US4] Test that exactly one route is registered under a host driver, behind the panel's auth middleware (FR-021), in `tests/SeenRouteTest.php`
+- [ ] T061 [P] [US4] Test that an unknown tour id returns 404 and **never** reaches the driver (`contracts/http.md`), in `tests/SeenRouteTest.php`
+- [ ] T062 [P] [US4] Test that a driver reporting a tour seen causes it to be filtered from the payload **before render**, so its copy never reaches the browser (FR-008), in `tests/TourRegistryTest.php`
+- [ ] T063 [P] [US4] Test that an invalid `filament-tours.state` value fails loudly at boot rather than silently falling back to `'local'` (`contracts/php-api.md`), in `tests/StateDriverTest.php`
 
 ### Implementation for User Story 4
 
-- [ ] T063 [US4] Implement state-driver resolution from `config('filament-tours.state')` in `src/FilamentToursServiceProvider.php`, resolving host class-strings from the container
-- [ ] T064 [US4] Add server-driver filtering to `TourRegistry::resolveFor()` in `src/TourRegistry.php` — drop run-once tours the driver reports seen (FR-008)
-- [ ] T065 [US4] Create `MarkTourSeenController` in `src/Http/Controllers/MarkTourSeenController.php` — validate the tour id against the registry, call `markSeen()`, return 204
-- [ ] T066 [US4] Register the single `POST filament-tours/{tour}/seen` route in `FilamentToursPlugin::boot()` in `src/FilamentToursPlugin.php`, **only** when a server driver is configured, behind the panel's auth middleware
-- [ ] T067 [US4] Emit `seenEndpoint` in the payload — a URL under a server driver, `null` under browser-local — in `resources/views/tours.blade.php`
-- [ ] T068 [US4] Implement the client POST on finish and dismiss in `resources/js/index.js`, branching on `seenEndpoint` nullness per `contracts/js-events.md`
-- [ ] T069 [US4] Implement fail-open POST failure handling in `resources/js/index.js` per research R6: suppress for this page session only, no retry, warn under debug
-- [ ] T070 [US4] Run `npm run build` and commit the updated `resources/dist/`
+- [ ] T064 [US4] Implement state-driver resolution from `config('filament-tours.state')` in `src/FilamentToursServiceProvider.php`, resolving host class-strings from the container
+- [ ] T065 [US4] Add server-driver filtering to `TourRegistry::resolveFor()` in `src/TourRegistry.php` — drop run-once tours the driver reports seen (FR-008)
+- [ ] T066 [US4] Create `MarkTourSeenController` in `src/Http/Controllers/MarkTourSeenController.php` — validate the tour id against the registry, call `markSeen()`, return 204
+- [ ] T067 [US4] Register the single `POST filament-tours/{tour}/seen` route in `FilamentToursPlugin::boot()` in `src/FilamentToursPlugin.php`, **only** when a server driver is configured, behind the panel's auth middleware
+- [ ] T068 [US4] Emit `seenEndpoint` in the payload — a URL under a server driver, `null` under browser-local — in `resources/views/tours.blade.php`
+- [ ] T069 [US4] Implement the client POST on finish and dismiss in `resources/js/index.js`, branching on `seenEndpoint` nullness per `contracts/js-events.md`
+- [ ] T070 [US4] Implement fail-open POST failure handling in `resources/js/index.js` per research R6: suppress for this page session only, no retry, warn under debug
+- [ ] T071 [US4] Run `npm run build` and commit the updated `resources/dist/`
 
 **Checkpoint**: Persistence moves server-side by config alone. No definition changed.
 
@@ -219,16 +222,16 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 5 ⚠️ write first, confirm they fail
 
-- [ ] T071 [P] [US5] Test that a duplicate tour id throws `InvalidArgumentException` naming the offending tour (FR-017), in `tests/TourRegistryTest.php`
-- [ ] T072 [P] [US5] Test that a tour with zero steps throws, naming the tour, in `tests/TourRegistryTest.php`
-- [ ] T073 [P] [US5] Test that `->for()` naming a non-existent class throws, naming the tour and the missing class, in `tests/TourRegistryTest.php`
-- [ ] T074 [P] [US5] Test that `tours:list` outputs id, page or `when()`, step count, and `once` for every registered tour, **and that its output makes no claim about selector validity** — a selector cannot be checked without a browser (SC-006, design §7) — in `tests/ListToursCommandTest.php`
+- [ ] T072 [P] [US5] Test that a duplicate tour id throws `InvalidArgumentException` naming the offending tour (FR-017), in `tests/TourRegistryTest.php`
+- [ ] T073 [P] [US5] Test that a tour with zero steps throws, naming the tour, in `tests/TourRegistryTest.php`
+- [ ] T074 [P] [US5] Test that `->for()` naming a non-existent class throws, naming the tour and the missing class, in `tests/TourRegistryTest.php`
+- [ ] T075 [P] [US5] Test that `tours:list` outputs id, page or `when()`, step count, and `once` for every registered tour, **and that its output makes no claim about selector validity** — a selector cannot be checked without a browser (SC-006, design §7) — in `tests/ListToursCommandTest.php`
 
 ### Implementation for User Story 5
 
-- [ ] T075 [US5] Add registration-time validation to `TourRegistry::register()` in `src/TourRegistry.php` — duplicate id, empty steps, `class_exists()` — each throwing with the tour named
-- [ ] T076 [US5] Create `ListToursCommand` in `src/Commands/ListToursCommand.php` as `tours:list`, and delete the placeholder `src/Commands/FilamentToursCommand.php`
-- [ ] T077 [US5] Update `getCommands()` in `src/FilamentToursServiceProvider.php` to register `ListToursCommand`
+- [ ] T076 [US5] Add registration-time validation to `TourRegistry::register()` in `src/TourRegistry.php` — duplicate id, empty steps, `class_exists()` — each throwing with the tour named
+- [ ] T077 [US5] Create `ListToursCommand` in `src/Commands/ListToursCommand.php` as `tours:list`, and delete the placeholder `src/Commands/FilamentToursCommand.php`
+- [ ] T078 [US5] Update `getCommands()` in `src/FilamentToursServiceProvider.php` to register `ListToursCommand`
 
 **Checkpoint**: Typos fail loudly at registration; the panel's tours are inventoried.
 
@@ -242,8 +245,8 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 **Covers**: SC-008. **CD-4 — must land before the first release tag.**
 
-- [ ] T078 [P] [US6] Add `/.specify`, `/.claude`, `/AGENTS.md`, `/specs`, `/bin`, `/resources/js`, `/resources/css` as `export-ignore` entries in `.gitattributes`. Measured: 70 tracked files across `.specify` + `.claude` alone, currently bound for every consumer's `vendor/`
-- [ ] T079 [US6] Verify with `git archive --format=tar HEAD | tar -t | sort` that development tooling and build sources are absent and that `src/`, `config/`, `resources/views/`, and `resources/dist/` are **present** — `resources/dist` must stay shipped, it is the built asset consumers need
+- [ ] T079 [P] [US6] Add `/.specify`, `/.claude`, `/AGENTS.md`, `/specs`, `/bin`, `/resources/js`, `/resources/css` as `export-ignore` entries in `.gitattributes`. Measured: 70 tracked files across `.specify` + `.claude` alone, currently bound for every consumer's `vendor/`
+- [ ] T080 [US6] Verify with `git archive --format=tar HEAD | tar -t | sort` that development tooling and build sources are absent and that `src/`, `config/`, `resources/views/`, and `resources/dist/` are **present** — `resources/dist` must stay shipped, it is the built asset consumers need
 
 **Checkpoint**: SC-008 satisfied. Safe to tag.
 
@@ -251,12 +254,12 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T080 [P] Add `tests/ArchTest.php` asserting: no `dd`/`dump`/`ray` calls in `src/`; value objects are `final`; everything in `src/Contracts/` is an interface; and — enforcing FR-003 — that no public method on `Step` or `Tour` references Filament component or field classes, so DOM-encoding helpers cannot be added by accident (R-008, constitution Principle III)
-- [ ] T081 [P] Rewrite `README.md`: replace the skeleton boilerplate ("This is where your description should go"), remove the "publish and run the migrations" section that constitution Principle II forbids, fix the **Filament 4.x** docs link, drop the `@source` theme instruction that contradicts SC-004, and document installation plus the frozen public API from `contracts/php-api.md` and the `[data-tour="…"]` convention (D5)
-- [ ] T082 [P] Document the state-driver upgrade path in `README.md`, including the ⚠️ that browser-local is per-browser and unsuitable for compliance-shaped requirements (D2)
-- [ ] T083 Run the full check: `composer test && composer analyse && composer test:lint && npm run build`, and confirm `resources/dist` is committed
-- [ ] T084 Walk every gate in [quickstart.md](./quickstart.md) end to end and record the result honestly — if something fails, say so with the output (constitution Principle IV, **R-027**)
-- [ ] T085 Re-run `/speckit-analyze` against `specs/001-tours-v1/` and confirm the gaps closed by this revision — FR-025, FR-026, SC-004, and the CSS asset — now map to tasks, and that no new drift appeared
+- [ ] T081 [P] Add `tests/ArchTest.php` asserting: no `dd`/`dump`/`ray` calls in `src/`; value objects are `final`; everything in `src/Contracts/` is an interface; and — enforcing FR-003 — that no public method on `Step` or `Tour` references Filament component or field classes, so DOM-encoding helpers cannot be added by accident (R-008, constitution Principle III)
+- [ ] T082 [P] Rewrite `README.md`: replace the skeleton boilerplate ("This is where your description should go"), remove the "publish and run the migrations" section that constitution Principle II forbids, fix the **Filament 4.x** docs link, drop the `@source` theme instruction that contradicts SC-004, and document installation plus the frozen public API from `contracts/php-api.md` and the `[data-tour="…"]` convention (D5)
+- [ ] T083 [P] Document the state-driver upgrade path in `README.md`, including the ⚠️ that browser-local is per-browser and unsuitable for compliance-shaped requirements (D2)
+- [ ] T084 Run the full check: `composer test && composer analyse && composer test:lint && npm run build`, and confirm `resources/dist` is committed
+- [ ] T085 Walk every gate in [quickstart.md](./quickstart.md) end to end and record the result honestly — if something fails, say so with the output (constitution Principle IV, **R-027**)
+- [ ] T086 Re-run `/speckit-analyze` against `specs/001-tours-v1/` and confirm the gaps closed by these revisions — FR-025, FR-026, SC-004, the CSS asset, and the two test-first orderings — now map to tasks, and that no new drift appeared
 
 ---
 
@@ -287,13 +290,13 @@ Tests first, confirmed failing, then implementation. Value objects before the re
 ### Parallel Opportunities
 
 - **Phase 1**: T003, T004 in parallel
-- **Phase 2**: T005, T006 in parallel; T007 after them. T012/T013 depend on T010's path decision
+- **Phase 2**: T005, T006 in parallel; T007 after them. T012 must fail before T013/T014 make it pass
 - **Phase 3**: T021, T022, T023 in parallel; T017/T018/T020 are atomic and sequential
-- **Phase 4**: all tests T025–T030 in parallel; then T031, T032, T033 in parallel
+- **Phase 4**: all tests T025–T031 in parallel; then T032, T033, T034 in parallel
 - **Phases 5–9**: US4, US5 and US6 can proceed in parallel once US1 is done
-- **US6 (T078, T079)** can be pulled forward at any time — it blocks a tag, not a feature
+- **US6 (T079, T080)** can be pulled forward at any time — it blocks a tag, not a feature
 
-⚠️ **`resources/js/index.js` is a single file touched by T009, T012, T040, T041, T046, T047, T048, T053, T054, T055, T068 and T069.** These are **never** parallel with each other, regardless of which story they belong to. This is the sharpest conflict point in the plan.
+⚠️ **`resources/js/index.js` is a single file touched by T009, T013, T041, T042, T047, T048, T049, T054, T055, T056, T069 and T070.** These are **never** parallel with each other, regardless of which story they belong to. This is the sharpest conflict point in the plan.
 
 ---
 
@@ -304,7 +307,7 @@ Tests first, confirmed failing, then implementation. Value objects before the re
 Task: "Test Step fluent defaults and value validation in tests/StepTest.php"
 Task: "Test Tour fluent defaults in tests/TourTest.php"
 Task: "Test TourRegistry resolveFor matching in tests/TourRegistryTest.php"
-Task: "Test payload shape against contracts/payload.md in tests/PayloadTest.php"
+Task: "Test LocalStorageState answers false for any id in tests/StateDriverTest.php"
 
 # Then the three independent value objects:
 Task: "Create Step value object in src/Step.php"
@@ -320,11 +323,11 @@ Task: "Create TourState interface in src/Contracts/TourState.php"
 
 Phase 2 exists because page-class resolution and the asset path depend on Filament internals. [Research R2](./research.md) verified the mechanism against the installed `vendor/` tree, but verified-by-reading is not verified-by-running. If T007 fails, the resolution strategy is wrong and every value object built on it would be rework. **Stop and re-plan rather than working around it.**
 
-The CSS tasks (T012–T014) live here for the same reason: `/speckit-analyze` found the stylesheet missing from the entire plan, and an unstyled tour fails SC-004 just as surely as a missing one. Proving both assets at once costs nothing extra now and a rebuild later.
+The stylesheet tasks (T012–T014) live here for the same reason: `/speckit-analyze` found it missing from the entire plan, and an unstyled tour fails SC-004 just as surely as a missing one. Proving both assets at once costs nothing extra now and a rebuild later.
 
 ### MVP scope
 
-Phases 1 → 2 → 3 → 4. That is T001–T044: a tour that defines, resolves, delivers, runs once, leaks onto nothing, and installs clean. Stop there and validate against Gate 1 in [quickstart.md](./quickstart.md) before continuing.
+Phases 1 → 2 → 3 → 4. That is T001–T045: a tour that defines, resolves, delivers, runs once, leaks onto nothing, and installs clean. Stop there and validate against Gate 1 in [quickstart.md](./quickstart.md) before continuing.
 
 ### Incremental delivery after MVP
 
@@ -332,7 +335,7 @@ US2 (degradation) is the highest-value follow-on — rot is certain, and without
 
 ### Before the first tag
 
-**T078 and T079 are release blockers**, not polish. Tag without them and every consumer gets development tooling in their `vendor/` — and it cannot be retracted from a published tag.
+**T079 and T080 are release blockers**, not polish. Tag without them and every consumer gets development tooling in their `vendor/` — and it cannot be retracted from a published tag.
 
 ---
 
