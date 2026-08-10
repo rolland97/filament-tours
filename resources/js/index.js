@@ -7,7 +7,14 @@ export default function filamentTours(payload = {}) {
         driver: null,
 
         init() {
-            this.driver = driver()
+            const steps = this.payload.steps ?? []
+
+            if (steps.length === 0) {
+                return
+            }
+
+            this.driver = driver({ steps })
+            this.driver.drive()
         },
     }
 }

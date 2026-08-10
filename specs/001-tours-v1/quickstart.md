@@ -58,6 +58,39 @@ Prove, in a Testbench panel, with a hardcoded tour and no value objects and no r
 **Expected outcome**: a committed `resources/dist/…` artifact and a passing Testbench test that
 asserts the hook output is present on a matching page.
 
+### Reproducing Gate 0 in a browser
+
+Step 4 needs a running app, not a test harness. `testbench.yaml` is **gitignored**, so recreate it:
+
+```yaml
+providers:
+  - Rolland\FilamentTours\FilamentToursServiceProvider
+  - Rolland\FilamentTours\Tests\Panel\TestPanelProvider
+env:
+  - APP_KEY="base64:<any 32-byte base64 key>"
+  - APP_DEBUG=true
+  - DB_CONNECTION=sqlite
+  - DB_DATABASE=":memory:"
+```
+
+```bash
+npm run build
+./vendor/bin/testbench filament:assets     # publishes BOTH the component and the stylesheet
+./vendor/bin/testbench serve --host=127.0.0.1 --port=8123
+```
+
+Then open `/testing/page-a` and `/testing/page-b`.
+
+| Page | Expected |
+|---|---|
+| `page-a` | `.driver-popover`, `.driver-overlay` and `.driver-active-element` present; popover computed style shows `position: fixed`, `z-index: 1000000000` — i.e. `driver.css` loaded |
+| `page-b` | none of the above, and the HTML contains no trace of the tour |
+
+⚠️ **This is a one-off check, not automated.** It was driven by Playwright rather than by hand,
+which is worth knowing — the plan had assumed this step needed a human at a screen and it did
+not. But it does **not** run in CI, so design §8's named gap (no JavaScript test suite) still
+stands unchanged. Re-run this by hand whenever the client code changes materially.
+
 ---
 
 ## Gate 1 — the MVP (User Story 1, P1)
