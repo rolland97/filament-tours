@@ -6,7 +6,9 @@ parameters:
     paths:
         - src
         - config
-        - database
+    # `database` was dropped from this list when the skeleton's migration stub and
+    # its factory were deleted: the package ships no migration (design §1), so the
+    # directory no longer exists and phpstan errors on a path it cannot find.
     tmpDir: build/phpstan
     # ⚠️ `checkOctaneCompatibility` and `checkModelProperties` were removed in
     # larastan v3 (this package installs v3.10), and phpstan rejects unknown
