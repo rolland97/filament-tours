@@ -139,6 +139,33 @@ FilamentToursPlugin::make()->tours([
 
 ---
 
+### Proving SC-004 from a real install
+
+Serving this repo's own harness does **not** prove SC-004 — it proves the working tree works. The
+claim is about what a consumer receives, so test the archive:
+
+```bash
+# 1. Extract exactly what a release ships
+git archive --format=tar HEAD | tar -x -C /tmp/pkg
+
+# 2. Require it from a separate project. symlink:false copies, so the app
+#    genuinely cannot reach the working tree.
+#    composer.json → repositories: [{ "type": "path", "url": "/tmp/pkg",
+#                                     "options": { "symlink": false } }]
+composer require rolland97/filament-tours:@dev
+
+# 3. Register a panel with one tour, then Filament's own asset step
+php artisan filament:assets
+```
+
+| Check | Expected |
+|---|---|
+| Tour on the targeted page | Runs, correct element highlighted |
+| Popover computed style | `position: fixed`, `z-index: 1000000000` — the shipped stylesheet published too |
+| `node_modules/` in the consumer | **Absent.** No npm, no bundler config, no theme `@source` line |
+
+Verified 2026-08-10: 20 files installed, tour ran styled, no npm anywhere in the consumer.
+
 ## Gate 2 — degradation (User Story 2, P2)
 
 Proves SC-003.
