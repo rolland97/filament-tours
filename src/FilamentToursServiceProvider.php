@@ -9,7 +9,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
-use Rolland\FilamentTours\Commands\FilamentToursCommand;
+use Rolland\FilamentTours\Commands\ListToursCommand;
 use Rolland\FilamentTours\Contracts\TourState;
 use Rolland\FilamentTours\State\LocalStorageState;
 use Rolland\FilamentTours\Testing\TestsFilamentTours;
@@ -117,7 +117,7 @@ class FilamentToursServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            FilamentToursCommand::class,
+            ListToursCommand::class,
         ];
     }
 

@@ -69,6 +69,34 @@ it('keeps resolved tours in registration order', function () {
     ))->toBe(['first', 'second', 'third']);
 });
 
+/*
+ * FR-017 / SC-007. Each of these must name the offending tour: a message that
+ * says only "duplicate id" leaves the developer grepping a panel provider.
+ */
+it('refuses two tours sharing an id, naming the offender', function () {
+    registry(tour('itrf-create')->for(PageA::class), tour('itrf-create')->for(PageB::class));
+})->throws(InvalidArgumentException::class, 'itrf-create');
+
+it('refuses a tour with no steps, naming the offender', function () {
+    registry(Tour::make('empty-tour')->for(PageA::class));
+})->throws(InvalidArgumentException::class, 'empty-tour');
+
+it('refuses a page class that does not exist, naming the tour and the class', function () {
+    registry(tour('typo-tour')->for('App\\Filament\\Pages\\Mispelled'));
+})->throws(InvalidArgumentException::class, 'typo-tour');
+
+it('names the missing class too, not just the tour', function () {
+    registry(tour('typo-tour')->for('App\\Filament\\Pages\\Mispelled'));
+})->throws(InvalidArgumentException::class, 'Mispelled');
+
+it('accepts a tour whose page class exists', function () {
+    expect(registry(tour('fine')->for(PageA::class))->all())->toHaveCount(1);
+});
+
+it('accepts a predicate-only tour, which has no class to check', function () {
+    expect(registry(tour('fine')->when(fn (): bool => true))->all())->toHaveCount(1);
+});
+
 it('lists every registered tour in registration order', function () {
     $registry = registry(tour('one')->for(PageA::class), tour('two')->when(fn (): bool => true));
 

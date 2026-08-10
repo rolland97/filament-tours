@@ -2,6 +2,7 @@
 
 namespace Rolland\FilamentTours;
 
+use InvalidArgumentException;
 use Rolland\FilamentTours\Contracts\TourState;
 
 /**
@@ -20,10 +21,45 @@ class TourRegistry
     public function register(Tour ...$tours): static
     {
         foreach ($tours as $tour) {
+            $this->validate($tour);
+
             $this->tours[$tour->getId()] = $tour;
         }
 
         return $this;
+    }
+
+    /**
+     * Fail at registration, not at render.
+     *
+     * Every message names the offending tour, because a panel provider can hold
+     * dozens and "duplicate tour id" on its own just starts a grep. These are
+     * the only checks possible without a browser: a selector cannot be verified
+     * here, and pretending otherwise would be worse than not trying.
+     */
+    protected function validate(Tour $tour): void
+    {
+        $id = $tour->getId();
+
+        if (isset($this->tours[$id])) {
+            throw new InvalidArgumentException(
+                "Two tours share the id [{$id}]. Tour ids must be unique within a panel.",
+            );
+        }
+
+        if ($tour->getSteps() === []) {
+            throw new InvalidArgumentException(
+                "Tour [{$id}] has no steps. A tour with nothing to show cannot run.",
+            );
+        }
+
+        $pageClass = $tour->getPageClass();
+
+        if ($pageClass !== null && ! class_exists($pageClass)) {
+            throw new InvalidArgumentException(
+                "Tour [{$id}] targets [{$pageClass}], which does not exist. Check the class name.",
+            );
+        }
     }
 
     /**
