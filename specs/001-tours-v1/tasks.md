@@ -72,14 +72,14 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 **⚠️ Sequencing**: T017, T018 and T020 are **one atomic change**. Removing the migration stub without also removing `defineDatabaseMigrations()` breaks the suite (research R8).
 
-- [ ] T017 Delete `database/migrations/create_tours_table.php.stub` — the package ships no migration (design §1, R-017)
-- [ ] T018 Remove `defineDatabaseMigrations()` and the `Factory::guessFactoryNamesUsing()` call from `tests/TestCase.php` (atomic with T017)
-- [ ] T019 Delete `database/factories/ModelFactory.php` — a factory for a model that does not and will not exist
-- [ ] T020 Remove `hasMigrations()`, `getMigrations()`, `publishMigrations()` and `askToRunMigrations()` from `src/FilamentToursServiceProvider.php`. Note `getMigrations()` currently returns `'create_filament-tours_table'`, naming a file that does not exist — **broken today**, moot once removed (research R8 #2)
-- [ ] T021 [P] Delete `resources/lang/en/tours.php` and remove the `hasTranslations()` call from `src/FilamentToursServiceProvider.php` — no lang files ship (design D6, R-018)
-- [ ] T022 [P] Delete `src/FilamentTours.php` and `src/Facades/FilamentTours.php`, and remove the `extra.laravel.aliases` entry from `composer.json` — a facade over an empty class
-- [ ] T023 [P] Delete the skeleton stubs `tests/ExampleTest.php` and `tests/DebugTest.php`
-- [ ] T024 Run `composer test && composer analyse` and confirm the suite is green after the removals
+- [X] T017 Delete `database/migrations/create_tours_table.php.stub` — the package ships no migration (design §1, R-017)
+- [X] T018 Remove `defineDatabaseMigrations()` and the `Factory::guessFactoryNamesUsing()` call from `tests/TestCase.php` (atomic with T017)
+- [X] T019 Delete `database/factories/ModelFactory.php` — a factory for a model that does not and will not exist
+- [X] T020 Remove `hasMigrations()`, `getMigrations()`, `publishMigrations()` and `askToRunMigrations()` from `src/FilamentToursServiceProvider.php`. Note `getMigrations()` currently returns `'create_filament-tours_table'`, naming a file that does not exist — **broken today**, moot once removed (research R8 #2)
+- [X] T021 [P] Delete `resources/lang/en/tours.php` and remove the `hasTranslations()` call from `src/FilamentToursServiceProvider.php` — no lang files ship (design D6, R-018)
+- [X] T022 [P] Delete `src/FilamentTours.php` and `src/Facades/FilamentTours.php`, and remove the `extra.laravel.aliases` entry from `composer.json` — a facade over an empty class
+- [X] T023 [P] Delete the skeleton stubs `tests/ExampleTest.php` and `tests/DebugTest.php`
+- [X] T024 Run `composer test && composer analyse` and confirm the suite is green after the removals
 
 **Checkpoint**: The package no longer contradicts its own design. Suite green.
 

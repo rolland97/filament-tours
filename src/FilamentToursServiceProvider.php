@@ -33,24 +33,21 @@ class FilamentToursServiceProvider extends PackageServiceProvider
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
                     ->askToStarRepoOnGitHub('rolland97/filament-tours');
             });
 
+        // ⚠️ shortName() is Str::after($name, 'laravel-'), and 'filament-tours'
+        // has no such prefix, so it returns unchanged. The config file must
+        // therefore be config/filament-tours.php — the skeleton's config/tours.php
+        // never matched this guard, so the config was silently never loaded.
         $configFileName = $package->shortName();
 
         if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
             $package->hasConfigFile();
         }
 
-        if (file_exists($package->basePath('/../database/migrations'))) {
-            $package->hasMigrations($this->getMigrations());
-        }
-
-        if (file_exists($package->basePath('/../resources/lang'))) {
-            $package->hasTranslations();
-        }
+        // No hasMigrations() and no hasTranslations(): the package ships neither.
+        // Persistence and wording are the host's, not ours.
 
         if (file_exists($package->basePath('/../resources/views'))) {
             $package->hasViews(static::$viewNamespace);
@@ -139,15 +136,5 @@ class FilamentToursServiceProvider extends PackageServiceProvider
     protected function getScriptData(): array
     {
         return [];
-    }
-
-    /**
-     * @return array<string>
-     */
-    protected function getMigrations(): array
-    {
-        return [
-            'create_filament-tours_table',
-        ];
     }
 }

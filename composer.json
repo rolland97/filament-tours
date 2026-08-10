@@ -59,10 +59,7 @@
         "laravel": {
             "providers": [
                 "Rolland\\FilamentTours\\FilamentToursServiceProvider"
-            ],
-            "aliases": {
-                "FilamentTours": "Rolland\\FilamentTours\\Facades\\FilamentTours"
-            }
+            ]
         }
     },
     "config": {
