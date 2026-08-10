@@ -34,28 +34,52 @@ export default function filamentTours(payload = {}) {
         tours: payload.tours ?? [],
 
         instance: null,
+        teardown: null,
+        suppressSeen: false,
 
         init() {
-            const tour = this.tours.find((candidate) => this.isEligible(candidate))
+            // Filament panels navigate as an SPA. Without this, an overlay
+            // describing the page you left survives onto the page you arrived
+            // at, pointing at elements that are gone — or worse, at different
+            // elements that happen to match the same selector.
+            this.teardown = () => this.stopTour()
+            document.addEventListener('livewire:navigating', this.teardown)
 
-            if (tour) {
-                this.start(tour)
+            // Resolve each candidate at most once. Calling resolveSteps() from
+            // both the eligibility check and start() warned twice per missing
+            // selector, which reads like two separate faults.
+            for (const tour of this.tours) {
+                if (this.isSeen(tour)) {
+                    continue
+                }
+
+                const steps = this.resolveSteps(tour)
+
+                if (steps.length > 0) {
+                    this.start(tour, steps)
+
+                    break
+                }
             }
         },
 
         /**
-         * Eligible = survived server-side resolution, has at least one step
-         * present in the DOM, and — if run-once — has not been seen.
-         *
-         * Under a server driver, seen tours were already filtered out before
-         * render, so the localStorage check only applies to the local driver.
+         * Alpine's own teardown hook. Named by Alpine, not by us — it fires when
+         * the component is removed, which is also a moment no tour should outlive.
          */
-        isEligible(tour) {
-            if (tour.once && this.seenEndpoint === null && this.hasSeenLocally(tour.id)) {
-                return false
-            }
+        destroy() {
+            document.removeEventListener('livewire:navigating', this.teardown)
+            this.stopTour()
+        },
 
-            return this.resolveSteps(tour).length > 0
+        /**
+         * Under a server driver, seen tours were already filtered out before
+         * render, so this localStorage check only bites under the local one.
+         */
+        isSeen(tour) {
+            return tour.once === true
+                && this.seenEndpoint === null
+                && this.hasSeenLocally(tour.id)
         },
 
         /**
@@ -85,20 +109,26 @@ export default function filamentTours(payload = {}) {
                 }))
         },
 
-        start(tour) {
-            const steps = this.resolveSteps(tour)
+        start(tour, resolved = null) {
+            const steps = resolved ?? this.resolveSteps(tour)
 
             if (steps.length === 0) {
                 return
             }
 
-            this.destroy()
+            this.stopTour()
 
             this.instance = driver({
                 steps,
                 onDestroyed: () => {
                     // Finish and dismiss are the same decision: the user is done.
-                    this.markSeen(tour)
+                    // Navigating away is NOT — they neither finished nor
+                    // dismissed it, so a run-once tour must still be offered
+                    // next visit (FR-012).
+                    if (! this.suppressSeen) {
+                        this.markSeen(tour)
+                    }
+
                     this.instance = null
                 },
             })
@@ -106,9 +136,17 @@ export default function filamentTours(payload = {}) {
             this.instance.drive()
         },
 
-        destroy() {
+        /**
+         * Tear down any live tour. Deliberately NOT called destroy(): that name
+         * belongs to Alpine's lifecycle hook above, and having both meant the
+         * framework silently calling ours.
+         */
+        stopTour() {
             if (this.instance) {
+                // Tell onDestroyed this is our teardown, not the user finishing.
+                this.suppressSeen = true
                 this.instance.destroy()
+                this.suppressSeen = false
                 this.instance = null
             }
         },

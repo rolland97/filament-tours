@@ -94,6 +94,31 @@ it('renders copy as text, so markup in it cannot execute', function () {
         ->toContain('<script>alert');
 });
 
+/*
+ * FR-014 and FR-016 are client-side behaviours: whether a selector resolves is
+ * only knowable in a browser, so the server cannot and must not try to decide.
+ *
+ * What the PHP suite can assert is the half that belongs to the server — it
+ * sends the tour intact, unmatched selectors and all, and leaves the skipping
+ * to the client. The skipping itself is browser-verified (quickstart Gate 2).
+ */
+it('sends a tour whose selectors may not resolve, and leaves that to the client', function () {
+    $tours = payloadFrom(PageB::getUrl() . '?partial=1')['tours'];
+
+    expect($tours)->toHaveCount(1)
+        ->and($tours[0]['id'])->toBe('page-b-partial')
+        ->and($tours[0]['steps'])->toHaveCount(3)
+        ->and($tours[0]['steps'][1]['selector'])->toBe('[data-tour="gone"]');
+});
+
+it('sends a tour even when none of its selectors can resolve', function () {
+    $tours = payloadFrom(PageB::getUrl() . '?missing=1')['tours'];
+
+    expect($tours)->toHaveCount(1)
+        ->and($tours[0]['id'])->toBe('page-b-missing')
+        ->and($tours[0]['steps'])->toHaveCount(2);
+});
+
 it('keeps a tour without the run-once flag in the payload, unmarked', function () {
     // FR-026: `once` is persistence, not a trigger. A tour lacking it is still
     // sent and still auto-starts — every visit, which is the point.

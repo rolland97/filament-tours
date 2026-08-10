@@ -137,16 +137,16 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 2 ⚠️ write first, confirm they fail
 
-- [ ] T046 [P] [US2] Test that a tour with no resolvable steps does not start and shows nothing (FR-016), in `tests/RenderHookTest.php`
+- [X] T046 [P] [US2] Test that a tour with no resolvable steps does not start and shows nothing (FR-016), in `tests/RenderHookTest.php`
 
 > The remaining US2 behaviour is client-side and has **no PHP test**. This is the named gap in design §8, constitution **Principle I**, and **R-009** — verified manually via T050 and by the first consumer's browser journey. Do not add a JS test toolchain for it without an explicit decision.
 
 ### Implementation for User Story 2
 
-- [ ] T047 [US2] Implement selector filtering in `resources/js/index.js` — drop steps whose selector does not resolve, keep the rest running (FR-014)
-- [ ] T048 [US2] Implement the debug-gated console warning naming tour and unmatched selector in `resources/js/index.js`, reading the payload's `debug` flag (FR-015, SC-003)
-- [ ] T049 [US2] Implement `livewire:navigating` teardown in `resources/js/index.js` — destroy any live tour, and do **not** mark it seen (FR-012)
-- [ ] T050 [US2] Run `npm run build`, commit `resources/dist/`, and manually verify Gate 2 in [quickstart.md](./quickstart.md) in a browser: missing middle step, no-steps-resolve, and mid-tour navigation
+- [X] T047 [US2] Implement selector filtering in `resources/js/index.js` — drop steps whose selector does not resolve, keep the rest running (FR-014)
+- [X] T048 [US2] Implement the debug-gated console warning naming tour and unmatched selector in `resources/js/index.js`, reading the payload's `debug` flag (FR-015, SC-003)
+- [X] T049 [US2] Implement `livewire:navigating` teardown in `resources/js/index.js` — destroy any live tour, and do **not** mark it seen (FR-012)
+- [X] T050 [US2] Run `npm run build`, commit `resources/dist/`, and manually verify Gate 2 in [quickstart.md](./quickstart.md) in a browser: missing middle step, no-steps-resolve, and mid-tour navigation
 
 **Checkpoint**: A rotted tour degrades quietly for users and loudly for developers.
 
