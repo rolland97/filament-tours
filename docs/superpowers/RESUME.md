@@ -1,119 +1,125 @@
 # Resume Handoff — `rolland97/filament-tours`
 
-Written 2026-08-03, refreshed the same day after the repo went public and CI went green.
-**Read this first when picking the work up**, on this machine or another.
+Rewritten 2026-08-10. The previous version said "parked after design, no package code written" —
+that is now wrong by about 3,000 lines. **Read this first when picking the work up.**
 
-## Status: **PARKED after design. No package code written yet.**
+## Status: **the package works. 58 of 86 tasks done, on branch `001-tours-v1`.**
 
-The design is approved and committed. The repo is a configured Filament plugin skeleton with
-spec-kit installed and **green CI on GitHub**. Nothing in `src/` implements the design yet —
-those files are the skeleton's own stubs.
+A tour defined on a panel provider runs on the page it targets, once, degrades when the page
+changes underneath it, and leaks nothing onto pages it does not target. Verified in a real browser
+and in a separate application installed from the release archive.
 
-- **Remote**: https://github.com/rolland97/filament-tours — public, `main`, pushed.
-- **CI**: `tests`, `phpstan` and `zizmor` all ✅ green on `main`.
-- **Packagist**: ⚠️ **not submitted, and deliberately so.** No tag exists.
-  `composer require rolland97/filament-tours` will **not** resolve. The package currently does
-  nothing, and a published version is effectively permanent — tag and submit when v1 implements
-  the design, so the README describes something true.
+⚠️ **12 commits exist only on this machine.** `001-tours-v1` has never been pushed. `git ls-remote`
+shows only `main` and a dependabot branch. Losing this disk loses the work.
 
-## What this package is
-
-Guided product tours for Filament v5 panels, wrapping [driver.js](https://driverjs.com/).
-First consumer will be the **procurement** app's backlog **#18**, which gets its own spec-kit
-cycle in that repo — this package is deliberately app-agnostic.
-
-**Read the design before writing anything**:
-`docs/superpowers/specs/2026-08-03-filament-tours-design.md` — 10 sections, including seven
-decisions with the alternatives each beat, and two costs stated plainly (localStorage replays a
-tour on a second device; no JS test suite in v1).
+| | |
+|---|---|
+| Branch | `001-tours-v1`, 12 commits ahead of `main`, **unpushed** |
+| Suite | 59 passed, 176 assertions |
+| Static analysis | PHPStan level 4, clean |
+| Formatting | Pint, clean |
+| Built assets | `resources/dist/components/` — committed and current |
+| Packagist | ⚠️ still not submitted, still no tag. Correct: v1 is not finished |
 
 ## ▶ Next action
 
-The brainstorming flow stopped at its terminal step: turn the design into a plan. Do this before
-anything else.
-
 ```bash
 cd ~/projects/filament-tours
-git pull
+git switch 001-tours-v1
+composer install && npm install     # both are gitignored
+./vendor/bin/pest --no-coverage     # expect 59 passed
 ```
 
-Then, in Claude Code:
+Then in Claude Code, continue `/speckit-implement`. `specs/001-tours-v1/tasks.md` is the live
+checklist — `[X]` means done and verified.
 
-1. **`/superpowers:writing-plans`** against
-   `docs/superpowers/specs/2026-08-03-filament-tours-design.md`, writing to
-   `docs/superpowers/plans/2026-08-03-filament-tours.md`.
-2. Execute test-first. Design §8 lists the intended test surface; §10 has seven success criteria
-   (SC-1 … SC-7) to hold the plan to.
+**Remaining work, in the order I would take it:**
 
-## Baseline on this machine, measured 2026-08-03 (post-fix)
+1. **Phase 7 / US4** (T059–T071) — server-side state driver. The largest phase, and **the only one
+   that adds a write endpoint.** `contracts/http.md` has the security posture: the route exists
+   only when a host driver is configured, sits behind the panel's own auth middleware, and
+   validates the tour id against the registry before the driver is touched. Follow it rather than
+   improvising.
+2. **Phase 6 / US3** (T051–T058) — replay via `StartTourAction` and the `filament-tours:start`
+   event. Note T056 (single auto-start) is already satisfied by the `for … break` loop in
+   `init()`; verify rather than rebuild.
+3. **Phase 10** (T081–T086) — polish. **T082 is not cosmetic**: `README.md` is still skeleton
+   boilerplate, including "This is where your description should go", a Filament **4.x** docs
+   link, and a "publish and run the migrations" section for a migration this package deliberately
+   does not have. It is the first thing a consumer reads.
 
-| Check | Command | Result |
-|---|---|---|
-| Tests | `php vendor/bin/pest --ci --no-coverage` | ✅ **2 passed** (4 assertions) — the skeleton's `DebugTest` + `ExampleTest` |
-| Static analysis | `php vendor/bin/phpstan --error-format=github` | ✅ exit 0, no errors |
-| CI on `main` | GitHub Actions | ✅ tests + phpstan + zizmor green |
+## What is already true, and should not be re-litigated
 
-Both commands are the **exact** ones CI runs, which is the point — the last round of red was
-caused by local and CI commands differing.
+All seven of the design's original success criteria (SC-1 … SC-7) are implemented and verified.
+Two later additions, SC-008 (packaging) and SC-010 (escaping), are also verified. **SC-009**
+(spike-first) was satisfied by construction.
 
-## ⚠️ Four defects the skeleton shipped, all fixed — do not "restore" them
+The design's identified fragile step turned out to be less fragile than feared. §6 assumed the
+page class had to be read off the current route's action, an internal detail. It does not:
+Filament hands it to render hooks through `HasRenderHookScopes`, a published interface.
+`tests/PageClassResolutionTest.php` is the tripwire and will fail loudly if an upgrade changes it.
 
-Every one of these was reproduced locally before being fixed. If you re-pull the skeleton or
-diff against upstream, these differences are deliberate.
+## ⚠️ Traps found this cycle — do not re-introduce these
 
-1. **`phpstan.neon.dist` used larastan v2 parameters.** `checkOctaneCompatibility` and
-   `checkModelProperties` were removed in v3 (v3.10 installs here), and phpstan errors on
-   unknown parameters, so `composer analyse` failed on a fresh clone:
-   `Unexpected item 'parameters › checkOctaneCompatibility'`. Both lines removed.
-2. **The PHP floor was wrong.** `composer.json` said `php: ^8.2` while
-   `pestphp/pest-plugin-livewire` v4 requires `^8.3`, so every 8.2 matrix job died at *Install
-   dependencies*. Floor is now `^8.3` (matching the sibling package) and 8.2 is out of both
-   matrices.
-3. **`pest --ci` implies coverage, but `setup-php` sets `coverage: none`.** The step printed
-   *"No code coverage driver available"* and exited 1 **having run zero tests** — a red CI that
-   said nothing about the tests. The command is now `pest --ci --no-coverage`. Enabling coverage
-   is a later decision; with two stub tests the number is meaningless.
-4. ⚠️ **An empty `exclude:` key breaks the workflow while remaining valid YAML.** Removing the
-   8.2 exclude entry left a bare `exclude:`; `yaml.safe_load` parses it as null, and **GitHub
-   Actions rejects the workflow outright**. *The tell: a run whose name is the workflow FILE
-   path instead of the job name, failing instantly with no steps.* This one was self-inflicted
-   while fixing #2.
+1. **Server-side escaping alone is not protection.** This was live, and the whole PHP suite
+   reported green while it was broken. `JSON.parse` hands JavaScript the original characters
+   straight back, and driver.js assigns popover copy with `innerHTML`, so a tour body of
+   `<img src=x onerror=…>` **executed in Chromium**. `onPopoverRender` is not a fix either — it
+   runs after the assignment. The client escapes before the string reaches the engine.
+   **`quickstart.md` has a required XSS probe. Run it whenever the client code or driver.js
+   version changes.** No PHP test can catch this class of bug.
+2. **`config/tours.php` was never loaded.** The provider guards on
+   `file_exists(config/{shortName}.php)`, and `shortName()` is `Str::after($name, 'laravel-')` —
+   `filament-tours` has no such prefix, so it returns unchanged and the guard looked for
+   `config/filament-tours.php`. The file is now named to match.
+3. **`destroy()` is Alpine's lifecycle hook.** Defining a method by that name means the framework
+   silently calls yours. The package's own teardown is `stopTour()`.
+4. **Tearing a tour down fires driver's `onDestroyed`**, which is also how user completion is
+   detected — so without the `suppressSeen` guard, navigating away silently marks a run-once tour
+   seen and the user never sees it again.
+5. **The archive shipped 109 files / 1.18MB.** Now 20 files / 80KB. Two skeleton defects caused
+   it: `/.package-lock.json` had a leading dot and matched nothing, and `composer.lock` was never
+   listed at all.
+6. **`composer test` exits 1 on this machine** — no Xdebug or PCOV, and `phpunit.xml.dist`
+   requests coverage. Not a failure. Use `./vendor/bin/pest --no-coverage` locally.
+7. **`$this->table()` wraps cells to terminal width**, splitting a fully-qualified class name
+   across lines. `tours:list` prints plain lines for exactly this reason.
 
-## Other traps already paid for
+## Verifying in a browser
 
-1. ⚠️ **`.gitignore` had `docs` and silently swallowed the design spec.** Git **cannot
-   re-include a file whose parent directory is excluded**, so `!docs/superpowers/` under a
-   `docs` rule is dead — the first commit claiming to add the spec contained only the ignore
-   change, and `git ls-files docs/` was empty. Now `docs/*` plus `!docs/superpowers/`, which
-   works because the *contents* are excluded rather than the directory.
-   **Check `git ls-files` after committing anything under `docs/`.**
-2. **`specify init` uses `--integration claude`, not `--ai claude`** in 0.12.4. Procurement's
-   `.specify/init-options.json` records an `ai` key that is not a CLI flag here.
-3. **`configure.php` is interactive and deletes itself.** It was driven with piped answers; Ray
-   and Rector were declined to keep dev dependencies near the sibling package. Add either by
-   hand if wanted — the script is gone.
-4. **Host PHP on this box has no `gd`.** Irrelevant here today, but remember it if a test ever
-   fabricates an image; procurement hits 7 errors from exactly this.
+`testbench.yaml` is **gitignored**, so it must be recreated — `quickstart.md` § Reproducing Gate 0
+has the contents and the commands. Playwright against `testbench serve` covers everything the PHP
+suite cannot: driver.js booting, styling, selector skipping, SPA teardown, and the XSS probe.
 
-## Toolchain installed here
+Design §8's "no JavaScript test suite in v1" still stands. Trap 1 above is what that costs.
 
-- **spec-kit 0.12.4**, `claude` integration: `.specify/` plus 20 skills in `.claude/skills/`.
-- **Extensions** `superb` + `memorylint` in `.specify/extensions.yml`, same hook chain as
-  procurement: `memorylint load-agents` mandatory before plan, `superb implementation-gate`
-  mandatory before implement, `critique` after. The catalog
-  (`.specify/extension-catalogs.yml`) was copied from procurement, because
-  `specify extension add <name>` resolves names through it.
-- The superb bridge depends on globally installed superpowers skills at `~/.agents/skills/`;
-  verify with `/speckit-superb-check` if bridge commands start failing.
+## Toolchain notes
 
-## Commits so far
+- **The superb bridge broke mid-session.** `~/.agents/skills/*` symlinks pointed at superpowers
+  **6.1.1**, which was replaced on disk by **6.2.0**, leaving 14 dangling links. Every skill
+  silently reported `available: false`. Repointed. Run `/speckit-superb-check` if bridge commands
+  start misbehaving — a missing skill and a broken symlink look identical.
+- `AGENTS.md` (27 rules) is a **mandatory** `before_plan` gate. `.specify/memory/constitution.md`
+  is ratified at **v1.0.0**; five principles, mapped to the AGENTS.md rules that implement them.
+- **A public API addition needs declaring.** `FilamentToursPlugin::registryKey()` extends the
+  surface R-020 freezes; it is documented in `contracts/php-api.md` with the reasoning rather than
+  left implicit. Worth a second opinion.
+
+## Commits on this branch
+
+`git log --oneline main..HEAD` is authoritative. Shape of it:
 
 ```text
-84ab419  ci: fix three defects the skeleton shipped
-9de4e81  docs: park after design — resume handoff + larastan v3 phpstan fix
-85e5afe  docs: design spec for filament-tours
-019f6f4  chore: install spec-kit 0.12.4 + superb and memorylint extensions
-3f65d1d  chore: scaffold from filamentphp/plugin-skeleton
+8cd18ce  feat: fail loudly at registration and inventory what is registered (T072-T078)
+5028daf  test: prove SC-004 by installing the archive into a separate app (T045)
+68ebd18  feat: ship the runtime, keep the workshop (T079-T080)
+299d570  feat: degrade a rotted tour instead of breaking it (T046-T050)
+31fb198  feat: define, resolve and deliver tours end to end (T025-T044)
+0ce67ee  feat: verify the spike in a real browser with Playwright (T016)
+a232b43  feat: remove the skeleton artifacts the design forbids (T017-T024)
+c5968b8  feat: prove the render hook and asset path in a Testbench panel (T005-T015)
+3c13075  feat: set up toolchain and test panel harness (T001-T004)
+b88b1a2  docs: fix two test-first violations the implementation gate caught
+3dbc8ab  docs: plan 001-tours-v1 through spec, clarify, plan, tasks, analyze
+c5aff09  docs: ratify constitution v1.0.0 and add AGENTS.md
 ```
-
-Plus the empty-`exclude` fix and this refresh. `git log --oneline` is authoritative.
