@@ -95,33 +95,33 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 1 ⚠️ write first, confirm they fail
 
-- [ ] T025 [P] [US1] Test `Step` fluent defaults and `side`/`align` value validation in `tests/StepTest.php`
-- [ ] T026 [P] [US1] Test `Tour` fluent defaults — `once` defaults false, steps ordered — in `tests/TourTest.php`
-- [ ] T027 [P] [US1] Test `TourRegistry::resolveFor()` for page-class match, predicate match, and non-match, in `tests/TourRegistryTest.php`
-- [ ] T028 [P] [US1] Test that a non-matching tour contributes **nothing** to the response — not its id, not its copy, not its selectors (SC-002) — in `tests/RenderHookTest.php`
-- [ ] T029 [P] [US1] Test the payload shape against `contracts/payload.md`: `panel`, `debug`, `seenEndpoint`, ordered `tours`, and that predicates and page classes are **absent**, in `tests/PayloadTest.php`
-- [ ] T030 [P] [US1] Test that tour copy is escaped — markup in `title`/`body` appears literally (FR-028, SC-010) — in `tests/PayloadTest.php`
-- [ ] T031 [P] [US1] Test that `LocalStorageState::hasSeen()` returns false for **any** tour id and that `markSeen()` writes nothing — the browser holds the answer under this driver, so the server answering otherwise would be a lie (FR-020, data-model.md) — in `tests/StateDriverTest.php`
+- [X] T025 [P] [US1] Test `Step` fluent defaults and `side`/`align` value validation in `tests/StepTest.php`
+- [X] T026 [P] [US1] Test `Tour` fluent defaults — `once` defaults false, steps ordered — in `tests/TourTest.php`
+- [X] T027 [P] [US1] Test `TourRegistry::resolveFor()` for page-class match, predicate match, and non-match, in `tests/TourRegistryTest.php`
+- [X] T028 [P] [US1] Test that a non-matching tour contributes **nothing** to the response — not its id, not its copy, not its selectors (SC-002) — in `tests/RenderHookTest.php`
+- [X] T029 [P] [US1] Test the payload shape against `contracts/payload.md`: `panel`, `debug`, `seenEndpoint`, ordered `tours`, and that predicates and page classes are **absent**, in `tests/PayloadTest.php`
+- [X] T030 [P] [US1] Test that tour copy is escaped — markup in `title`/`body` appears literally (FR-028, SC-010) — in `tests/PayloadTest.php`
+- [X] T031 [P] [US1] Test that `LocalStorageState::hasSeen()` returns false for **any** tour id and that `markSeen()` writes nothing — the browser holds the answer under this driver, so the server answering otherwise would be a lie (FR-020, data-model.md) — in `tests/StateDriverTest.php`
 
 ### Implementation for User Story 1
 
-- [ ] T032 [P] [US1] Create the `Step` value object in `src/Step.php` per `data-model.md` and `contracts/php-api.md`
-- [ ] T033 [P] [US1] Create the `Tour` value object in `src/Tour.php` per `data-model.md` and `contracts/php-api.md`
-- [ ] T034 [P] [US1] Create the `TourState` interface in `src/Contracts/TourState.php`
-- [ ] T035 [US1] Create `LocalStorageState` in `src/State/LocalStorageState.php` — `hasSeen()` returns false unconditionally by design, `markSeen()` is a no-op (data-model.md), making T031 pass
-- [ ] T036 [US1] Create `TourRegistry` in `src/TourRegistry.php` with `register()`, `all()`, and `resolveFor(array $scopes)`, preserving registration order (FR-011)
-- [ ] T037 [US1] Add `->tours(array $tours)` to `src/FilamentToursPlugin.php` and bind the registry as a per-panel singleton in `register()`
-- [ ] T038 [US1] Create the render-hook view in `resources/views/tours.blade.php`, emitting the escaped payload as the Alpine component's initial state. **No Tailwind utility classes** — they would force consumers to edit their panel theme, contradicting SC-004 (`contracts/payload.md` § Styling)
-- [ ] T039 [US1] Emit the `debug` flag in the payload from `resources/views/tours.blade.php`, mirroring the application's debug state — the browser cannot read it itself and every console diagnostic depends on it (FR-015)
-- [ ] T040 [US1] Replace the spike's hardcoded payload in `src/FilamentToursPlugin.php` with `TourRegistry::resolveFor($scopes)`, reading scopes from the hook callback (research R2)
-- [ ] T041 [US1] Implement the Alpine component startup sequence in `resources/js/index.js` per `contracts/js-events.md`: empty payload → do nothing; otherwise auto-start the first eligible tour
-- [ ] T042 [US1] Implement localStorage seen handling under key `filament-tours:{panel}:{tour}` in `resources/js/index.js`, writing on finish **and** on dismiss
-- [ ] T043 [US1] Run `npm run build` and commit the updated `resources/dist/`
+- [X] T032 [P] [US1] Create the `Step` value object in `src/Step.php` per `data-model.md` and `contracts/php-api.md`
+- [X] T033 [P] [US1] Create the `Tour` value object in `src/Tour.php` per `data-model.md` and `contracts/php-api.md`
+- [X] T034 [P] [US1] Create the `TourState` interface in `src/Contracts/TourState.php`
+- [X] T035 [US1] Create `LocalStorageState` in `src/State/LocalStorageState.php` — `hasSeen()` returns false unconditionally by design, `markSeen()` is a no-op (data-model.md), making T031 pass
+- [X] T036 [US1] Create `TourRegistry` in `src/TourRegistry.php` with `register()`, `all()`, and `resolveFor(array $scopes)`, preserving registration order (FR-011)
+- [X] T037 [US1] Add `->tours(array $tours)` to `src/FilamentToursPlugin.php` and bind the registry as a per-panel singleton in `register()`
+- [X] T038 [US1] Create the render-hook view in `resources/views/tours.blade.php`, emitting the escaped payload as the Alpine component's initial state. **No Tailwind utility classes** — they would force consumers to edit their panel theme, contradicting SC-004 (`contracts/payload.md` § Styling)
+- [X] T039 [US1] Emit the `debug` flag in the payload from `resources/views/tours.blade.php`, mirroring the application's debug state — the browser cannot read it itself and every console diagnostic depends on it (FR-015)
+- [X] T040 [US1] Replace the spike's hardcoded payload in `src/FilamentToursPlugin.php` with `TourRegistry::resolveFor($scopes)`, reading scopes from the hook callback (research R2)
+- [X] T041 [US1] Implement the Alpine component startup sequence in `resources/js/index.js` per `contracts/js-events.md`: empty payload → do nothing; otherwise auto-start the first eligible tour
+- [X] T042 [US1] Implement localStorage seen handling under key `filament-tours:{panel}:{tour}` in `resources/js/index.js`, writing on finish **and** on dismiss
+- [X] T043 [US1] Run `npm run build` and commit the updated `resources/dist/`
 
 ### Verification for User Story 1
 
-- [ ] T044 [P] [US1] Test that a tour **without** the run-once flag remains in the payload and auto-starts on a repeat visit, while a run-once tour does not — the flag is persistence, **not** a trigger (FR-026) — in `tests/PayloadTest.php`
-- [ ] T045 [US1] Verify the consumer install path end to end (SC-004): install the package into a scratch Laravel + Filament application, register the plugin and one tour, run `php artisan filament:assets`, and confirm a working, styled tour appears **without touching npm, a bundler, or the panel theme**. Record the result in the PR description
+- [X] T044 [P] [US1] Test that a tour **without** the run-once flag remains in the payload and auto-starts on a repeat visit, while a run-once tour does not — the flag is persistence, **not** a trigger (FR-026) — in `tests/PayloadTest.php`
+- [ ] T045 [US1] Verify the consumer install path end to end (SC-004): install the package into a scratch Laravel + Filament application, register the plugin and one tour, run `php artisan filament:assets`, and confirm a working, styled tour appears **without touching npm, a bundler, or the panel theme**. Record the result in the PR description. **Partially covered so far**: `filament:assets` publishes both assets and the tour runs styled under `testbench serve` with no npm and no theme edit — but that is this repo's own harness, not a `composer require` into a separate application, so the packaging half of SC-004 is still unproven. Depends on T079 (`.gitattributes`) to be a fair test
 
 **Checkpoint**: MVP. A tour defined in a panel provider runs once and only once, leaks onto nothing, and installs clean.
 

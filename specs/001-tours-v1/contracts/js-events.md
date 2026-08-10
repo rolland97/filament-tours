@@ -85,12 +85,28 @@ it would override that decision.
 
 ## Copy rendering
 
-`title` and `body` arrive **already escaped** (FR-028, SC-010) and are rendered as **text content**,
-never assigned as markup.
+⚠️ **The client-side guard is the load-bearing one.** This was implemented wrong once and the
+browser proved it, so the mechanism is spelled out rather than summarised.
 
-The tour engine's own default is to interpret descriptions as HTML. The client must not rely on
-that default holding across engine versions — it sets text explicitly. Server-side escaping and
-client-side text rendering are two independent guards on the same hole, and both are required.
+**Server-side escaping alone does not protect anything.** It makes the payload safe to embed in an
+HTML attribute, and that is all. `JSON.parse` hands JavaScript the original characters straight
+back, so by the time the client has the string, every server-side escape is undone. A tour body of
+`<img src=x onerror=…>` arrives at the client as exactly that.
+
+**driver.js assigns popover copy with `innerHTML`.** Passing it a raw string therefore creates real
+DOM: an `<img onerror>` fires, and this is stored XSS inside an authenticated admin panel. Verified
+by driving it in Chromium — the handler executed.
+
+**`onPopoverRender` is NOT a fix.** It runs *after* the assignment, so the payload has already
+executed by the time the hook could overwrite anything.
+
+**The fix**: HTML-escape `title` and `body` in the client, before handing them to the engine. The
+engine's `innerHTML` then renders them as visible literal text, and no nodes are created. If the
+engine ever switches to `textContent`, this surfaces as entities showing on screen — a visible
+display bug, not a silent hole, which is the right direction to fail in.
+
+Both guards remain required: the server-side one for safe transport into the attribute, the
+client-side one for safe rendering. Neither substitutes for the other.
 
 ---
 

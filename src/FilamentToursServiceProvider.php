@@ -10,6 +10,8 @@ use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
 use Rolland\FilamentTours\Commands\FilamentToursCommand;
+use Rolland\FilamentTours\Contracts\TourState;
+use Rolland\FilamentTours\State\LocalStorageState;
 use Rolland\FilamentTours\Testing\TestsFilamentTours;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -54,7 +56,12 @@ class FilamentToursServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+        // Minimal binding: the browser-local default. Resolving a host
+        // class-string from config('filament-tours.state') lands in T064.
+        $this->app->bind(TourState::class, LocalStorageState::class);
+    }
 
     public function packageBooted(): void
     {
