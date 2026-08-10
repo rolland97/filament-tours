@@ -86,6 +86,28 @@ Then open `/testing/page-a` and `/testing/page-b`.
 | `page-a` | `.driver-popover`, `.driver-overlay` and `.driver-active-element` present; popover computed style shows `position: fixed`, `z-index: 1000000000` — i.e. `driver.css` loaded |
 | `page-b` | none of the above, and the HTML contains no trace of the tour |
 
+#### Required: the escaping probe
+
+**Run this whenever the client code or the tour engine version changes.** The PHP suite cannot
+catch this class of bug, and it was live once (see [research R9](./research.md)).
+
+```js
+// In the browser console on page-a:
+window.__xssFired = false
+const cmp = Alpine.$data(document.querySelector('[data-filament-tours]'))
+cmp.tours = [{ id: 'probe', once: false, steps: [{
+  selector: '[data-tour="thing"]',
+  body: '<img src=x onerror="window.__xssFired = true">',
+}]}]
+cmp.destroy(); cmp.start(cmp.tours[0])
+// then, after the popover appears:
+window.__xssFired                                             // must be false
+document.querySelector('.driver-popover-description').textContent  // must show the tag literally
+```
+
+`window.__xssFired === true` means a stored-XSS hole is open in every consuming panel. Stop and fix
+before anything else.
+
 ⚠️ **This is a one-off check, not automated.** It was driven by Playwright rather than by hand,
 which is worth knowing — the plan had assumed this step needed a human at a screen and it did
 not. But it does **not** run in CI, so design §8's named gap (no JavaScript test suite) still

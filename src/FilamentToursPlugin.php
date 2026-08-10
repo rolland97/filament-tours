@@ -4,16 +4,13 @@ namespace Rolland\FilamentTours;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use Filament\Support\Facades\FilamentAsset;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
+use Rolland\FilamentTours\Contracts\TourState;
 
 class FilamentToursPlugin implements Plugin
 {
-    /**
-     * Spike shape only — replaced by a list of Tour value objects in T037.
-     *
-     * @var array<int, array{id: string, for: class-string}>
-     */
+    /** @var list<Tour> */
     protected array $tours = [];
 
     public function getId(): string
@@ -22,11 +19,11 @@ class FilamentToursPlugin implements Plugin
     }
 
     /**
-     * @param  array<int, array{id: string, for: class-string}>  $tours
+     * @param  array<int, Tour>  $tours
      */
     public function tours(array $tours): static
     {
-        $this->tours = $tours;
+        $this->tours = array_values($tours);
 
         return $this;
     }
@@ -36,35 +33,7 @@ class FilamentToursPlugin implements Plugin
         $panel->renderHook(
             PanelsRenderHook::BODY_END,
             /** @param array<string> $scopes */
-            fn (array $scopes): string => $this->render($scopes),
-        );
-    }
-
-    /**
-     * @param  array<string>  $scopes
-     */
-    protected function render(array $scopes): string
-    {
-        $applicable = array_values(array_filter(
-            $this->tours,
-            fn (array $tour): bool => in_array($tour['for'], $scopes, true),
-        ));
-
-        // Spike scaffolding. T038 replaces this with resources/views/tours.blade.php
-        // and a real payload; the scopes attribute is instrumentation and goes then.
-        $payload = [
-            'tours' => array_column($applicable, 'id'),
-            'steps' => $applicable === [] ? [] : [
-                ['element' => '[data-tour="thing"]', 'popover' => ['title' => 'Thing', 'description' => 'This is the thing.']],
-                ['element' => '[data-tour="other"]', 'popover' => ['title' => 'Other', 'description' => 'And the other.']],
-            ],
-        ];
-
-        return sprintf(
-            '<div data-filament-tours data-filament-tours-scopes="%s" x-load x-load-src="%s" x-data="filamentTours(%s)"></div>',
-            e(implode(',', $scopes)),
-            e(FilamentAsset::getAlpineComponentSrc('filament-tours', 'rolland97/filament-tours')),
-            e((string) json_encode($payload)),
+            fn (array $scopes): View => $this->render($panel, $scopes),
         );
     }
 
@@ -84,5 +53,53 @@ class FilamentToursPlugin implements Plugin
         $plugin = filament(app(static::class)->getId());
 
         return $plugin;
+    }
+
+    /**
+     * @param  array<string>  $scopes
+     */
+    protected function render(Panel $panel, array $scopes): View
+    {
+        // Built per request, not per panel: predicates are evaluated during
+        // resolveFor(), and they read request state.
+        $registry = new TourRegistry($this->resolveState());
+        $registry->register(...$this->tours);
+
+        return view('filament-tours::tours', [
+            'payload' => [
+                'panel' => $panel->getId(),
+                'debug' => (bool) config('app.debug'),
+                // Null under the browser-local driver, and its nullness is how the
+                // client knows which driver is active — no separate mode flag.
+                'seenEndpoint' => null,
+                'tours' => array_map(
+                    fn (Tour $tour): array => $this->describe($tour),
+                    $registry->resolveFor($scopes),
+                ),
+            ],
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function describe(Tour $tour): array
+    {
+        return [
+            'id' => $tour->getId(),
+            'once' => $tour->isOnce(),
+            'steps' => array_map(fn (Step $step): array => [
+                'selector' => $step->getSelector(),
+                'title' => $step->getTitle(),
+                'body' => $step->getBody(),
+                'side' => $step->getSide(),
+                'align' => $step->getAlign(),
+            ], $tour->getSteps()),
+        ];
+    }
+
+    protected function resolveState(): TourState
+    {
+        return app(TourState::class);
     }
 }

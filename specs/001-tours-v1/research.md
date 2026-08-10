@@ -152,6 +152,35 @@ proves unreliable in practice); optimistic localStorage write alongside the serv
 
 ---
 
+## R9 — Server-side escaping is not enough, and the browser had to prove it *(found during Phase 4)*
+
+**What happened**: the first working implementation escaped tour copy server-side, via `Js::from()`,
+and stopped there. FR-028 and SC-010 both read as satisfied, and the whole PHP suite agreed —
+`PayloadTest` asserted the raw `<script>` never appears in the response HTML, and it does not.
+
+Driving it in Chromium showed a live stored XSS. A tour body of
+`<img src=x onerror="window.__xssFired = true">` executed: `xssFired` came back `true`.
+
+**Why the PHP tests could not catch it**: they assert on the *response*, and the response was
+genuinely clean. The hole opens one step later, in the browser — `JSON.parse` returns the original
+characters, and driver.js assigns them with `innerHTML`. Every server-side escape is undone before
+the dangerous assignment happens. No assertion on server output can see this.
+
+**Why `onPopoverRender` is not the fix**: it runs after the `innerHTML` assignment. The payload has
+already executed by the time the hook could overwrite the element.
+
+**The fix**: HTML-escape in the client, before the string reaches the engine, so `innerHTML`
+renders it as literal text and creates no nodes. Verified: `xssFired` false, zero injected nodes,
+markup shown on screen as text.
+
+**What this says about the named gap.** `contracts/payload.md` had already stated that server-side
+escaping and client-side text rendering are "two independent guards on the same hole, and both are
+required" — the contract was right and the implementation only built one of them. Design §8 accepts
+having no JavaScript test suite, mitigated by a consumer's browser journey. This is the first
+concrete evidence of what that costs: a security property that the entire PHP suite reports as
+green while it is broken in every browser. The mitigation held only because the browser check
+actually got run. It is now a required step in `quickstart.md` rather than an optional one.
+
 ## R7 — Constitution status
 
 **At the time this research was written**, `.specify/memory/constitution.md` was the unmodified
