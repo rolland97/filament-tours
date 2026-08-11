@@ -13,13 +13,14 @@ use Filament\Schemas\SchemasServiceProvider;
 use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as Orchestra;
-use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Rolland\FilamentTours\FilamentToursServiceProvider;
+use Rolland\FilamentTours\Tests\Panel\TestPanelProvider;
+use Rolland\FilamentTours\Tests\Support\TestUser;
+use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -30,9 +31,19 @@ class TestCase extends Orchestra
     {
         parent::setUp();
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Rolland\\FilamentTours\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
-        );
+        // Tours are for authenticated panel users — the spec's Assumptions say
+        // so, and the test panel declares auth middleware like a real one.
+        // TestUser implements FilamentUser, without which Filament only permits
+        // access when app.env is 'local'. Tests that care about anonymous
+        // access log out explicitly.
+        $user = new TestUser;
+        $user->forceFill([
+            'id' => 1,
+            'name' => 'Test User',
+            'email' => 'test@example.test',
+        ]);
+
+        $this->actingAs($user);
     }
 
     protected function getPackageProviders($app)
@@ -52,6 +63,7 @@ class TestCase extends Orchestra
             TablesServiceProvider::class,
             WidgetsServiceProvider::class,
             FilamentToursServiceProvider::class,
+            TestPanelProvider::class,
         ];
 
         sort($providers);
@@ -62,10 +74,10 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app): void
     {
         $app['config']->set('database.default', 'testing');
-    }
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
 
-    protected function defineDatabaseMigrations(): void
-    {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        // The test panel's pages render a blade that lives with them, not in
+        // the package — resources/views is for what ships.
+        $app['view']->addNamespace('filament-tours-tests', __DIR__ . '/Panel/views');
     }
 }
