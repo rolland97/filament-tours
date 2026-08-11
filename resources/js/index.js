@@ -36,6 +36,9 @@ export default function filamentTours(payload = {}) {
         instance: null,
         teardown: null,
         suppressSeen: false,
+        // Tours whose seen-write failed. In memory only: this page session, no
+        // retry, and the server is authoritative again on the next load.
+        suppressed: [],
 
         init() {
             // Filament panels navigate as an SPA. Without this, an overlay
@@ -77,9 +80,17 @@ export default function filamentTours(payload = {}) {
          * render, so this localStorage check only bites under the local one.
          */
         isSeen(tour) {
-            return tour.once === true
-                && this.seenEndpoint === null
-                && this.hasSeenLocally(tour.id)
+            if (tour.once !== true) {
+                return false
+            }
+
+            if (this.suppressed.includes(tour.id)) {
+                return true
+            }
+
+            // Under a server driver, seen tours were already filtered out
+            // before render, so localStorage only decides for the local one.
+            return this.seenEndpoint === null && this.hasSeenLocally(tour.id)
         },
 
         /**
@@ -158,7 +169,46 @@ export default function filamentTours(payload = {}) {
 
             if (this.seenEndpoint === null) {
                 this.rememberLocally(tour.id)
+
+                return
             }
+
+            this.postSeen(tour)
+        },
+
+        /**
+         * Tell the server this tour is done.
+         *
+         * Fails open, deliberately. If the write does not land, the tour may
+         * run once more on the next page load — visible and self-correcting.
+         * Failing closed would silently retire a tour after one transient blip,
+         * and the user would have no way to know.
+         */
+        postSeen(tour) {
+            const url = this.seenEndpoint.replace('__TOUR__', encodeURIComponent(tour.id))
+
+            const headers = { Accept: 'application/json' }
+            const token = document.querySelector('meta[name="csrf-token"]')?.content
+
+            if (token) {
+                headers['X-CSRF-TOKEN'] = token
+            }
+
+            fetch(url, { method: 'POST', headers, credentials: 'same-origin' })
+                .then((response) => {
+                    if (! response.ok) {
+                        this.failOpen(tour, `server responded ${response.status}`)
+                    }
+                })
+                // No retry: the user is likely navigating away, and queueing
+                // work in a page that is about to be discarded helps nobody.
+                .catch(() => this.failOpen(tour, 'request did not complete'))
+        },
+
+        failOpen(tour, reason) {
+            this.suppressed.push(tour.id)
+
+            this.warn(`tour "${tour.id}": could not record as seen (${reason}); it may run again next load`)
         },
 
         seenKey(tourId) {

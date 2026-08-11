@@ -3,44 +3,6 @@
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageB;
 
-/**
- * Pull the Alpine component's initial state back out of the rendered page.
- *
- * Asserting on the decoded payload rather than on substrings keeps these tests
- * honest about shape: a test that greps for a tour id passes even if the id is
- * sitting in the wrong field.
- *
- * @return array<string, mixed>
- */
-function payloadFrom(string $url): array
-{
-    $html = (string) test()->get($url)->assertOk()->getContent();
-
-    // Js::from() escapes every quote as " so the value is attribute-safe,
-    // which is what makes [^"]* a sound way to grab it.
-    preg_match('/x-data="filamentTours\((.*?)\)"/s', $html, $matches);
-
-    expect($matches[1] ?? null)->not->toBeNull('No filamentTours() payload found in the response.');
-
-    // Js::from() renders as JSON.parse('…'); unwrap it to get at the JSON.
-    preg_match("/^JSON\.parse\('(.*)'\)$/s", html_entity_decode($matches[1], ENT_QUOTES), $inner);
-
-    expect($inner[1] ?? null)->not->toBeNull('Payload was not the expected JSON.parse(...) form.');
-
-    // Two decodes, not one. Js::from() escapes every quote as " so the value
-    // survives an HTML attribute; the browser's string literal resolves those
-    // before JSON.parse sees them, so PHP has to do the same. Decoding it as a
-    // JSON *string* first turns " back into ", leaving real JSON behind.
-    $json = json_decode('"' . $inner[1] . '"');
-
-    $decoded = json_decode((string) $json, true);
-
-    expect($decoded)->toBeArray();
-
-    /** @var array<string, mixed> $decoded */
-    return $decoded;
-}
-
 it('carries the fields the payload contract promises', function () {
     $payload = payloadFrom(PageA::getUrl());
 

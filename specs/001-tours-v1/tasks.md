@@ -191,22 +191,22 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 4 ⚠️ write first, confirm they fail
 
-- [ ] T059 [P] [US4] Test that **no** seen route is registered under `'state' => 'local'`, by inspecting the route list (FR-020) — the absence assertion — in `tests/SeenRouteTest.php`
-- [ ] T060 [P] [US4] Test that exactly one route is registered under a host driver, behind the panel's auth middleware (FR-021), in `tests/SeenRouteTest.php`
-- [ ] T061 [P] [US4] Test that an unknown tour id returns 404 and **never** reaches the driver (`contracts/http.md`), in `tests/SeenRouteTest.php`
-- [ ] T062 [P] [US4] Test that a driver reporting a tour seen causes it to be filtered from the payload **before render**, so its copy never reaches the browser (FR-008), in `tests/TourRegistryTest.php`
-- [ ] T063 [P] [US4] Test that an invalid `filament-tours.state` value fails loudly at boot rather than silently falling back to `'local'` (`contracts/php-api.md`), in `tests/StateDriverTest.php`
+- [X] T059 [P] [US4] Test that **no** seen route is registered under `'state' => 'local'`, by inspecting the route list (FR-020) — the absence assertion — in `tests/SeenRouteTest.php`
+- [X] T060 [P] [US4] Test that exactly one route is registered under a host driver, behind the panel's auth middleware (FR-021), in `tests/SeenRouteTest.php`
+- [X] T061 [P] [US4] Test that an unknown tour id returns 404 and **never** reaches the driver (`contracts/http.md`), in `tests/SeenRouteTest.php`
+- [X] T062 [P] [US4] Test that a driver reporting a tour seen causes it to be filtered from the payload **before render**, so its copy never reaches the browser (FR-008), in `tests/TourRegistryTest.php`
+- [X] T063 [P] [US4] Test that an invalid `filament-tours.state` value fails loudly at boot rather than silently falling back to `'local'` (`contracts/php-api.md`), in `tests/StateDriverTest.php`
 
 ### Implementation for User Story 4
 
-- [ ] T064 [US4] Implement state-driver resolution from `config('filament-tours.state')` in `src/FilamentToursServiceProvider.php`, resolving host class-strings from the container
-- [ ] T065 [US4] Add server-driver filtering to `TourRegistry::resolveFor()` in `src/TourRegistry.php` — drop run-once tours the driver reports seen (FR-008)
-- [ ] T066 [US4] Create `MarkTourSeenController` in `src/Http/Controllers/MarkTourSeenController.php` — validate the tour id against the registry, call `markSeen()`, return 204
-- [ ] T067 [US4] Register the single `POST filament-tours/{tour}/seen` route in `FilamentToursPlugin::boot()` in `src/FilamentToursPlugin.php`, **only** when a server driver is configured, behind the panel's auth middleware
-- [ ] T068 [US4] Emit `seenEndpoint` in the payload — a URL under a server driver, `null` under browser-local — in `resources/views/tours.blade.php`
-- [ ] T069 [US4] Implement the client POST on finish and dismiss in `resources/js/index.js`, branching on `seenEndpoint` nullness per `contracts/js-events.md`
-- [ ] T070 [US4] Implement fail-open POST failure handling in `resources/js/index.js` per research R6: suppress for this page session only, no retry, warn under debug
-- [ ] T071 [US4] Run `npm run build` and commit the updated `resources/dist/`
+- [X] T064 [US4] Implement state-driver resolution from `config('filament-tours.state')` in `src/FilamentToursServiceProvider.php`, resolving host class-strings from the container
+- [X] T065 [US4] Add server-driver filtering to `TourRegistry::resolveFor()` in `src/TourRegistry.php` — drop run-once tours the driver reports seen (FR-008)
+- [X] T066 [US4] Create `MarkTourSeenController` in `src/Http/Controllers/MarkTourSeenController.php` — validate the tour id against the registry, call `markSeen()`, return 204
+- [X] T067 [US4] Register the single `POST filament-tours/{tour}/seen` route in `FilamentToursPlugin::boot()` in `src/FilamentToursPlugin.php`, **only** when a server driver is configured, behind the panel's auth middleware
+- [X] T068 [US4] Emit `seenEndpoint` in the payload — a URL under a server driver, `null` under browser-local — in `resources/views/tours.blade.php`
+- [X] T069 [US4] Implement the client POST on finish and dismiss in `resources/js/index.js`, branching on `seenEndpoint` nullness per `contracts/js-events.md`
+- [X] T070 [US4] Implement fail-open POST failure handling in `resources/js/index.js` per research R6: suppress for this page session only, no retry, warn under debug
+- [X] T071 [US4] Run `npm run build` and commit the updated `resources/dist/`
 
 **Checkpoint**: Persistence moves server-side by config alone. No definition changed.
 
