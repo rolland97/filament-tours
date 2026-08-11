@@ -6,7 +6,9 @@ use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Route;
 use Rolland\FilamentTours\Contracts\TourState;
+use Rolland\FilamentTours\Http\Controllers\MarkTourSeenController;
 
 class FilamentToursPlugin implements Plugin
 {
@@ -57,11 +59,35 @@ class FilamentToursPlugin implements Plugin
             /** @param array<string> $scopes */
             fn (array $scopes): View => $this->render($panel, $scopes),
         );
+
+        // Exactly one route, and only when a host driver is configured. Under
+        // the browser-local default none is registered at all (FR-020).
+        // authenticatedRoutes(), not routes(): Filament wraps these in the
+        // panel's own auth middleware, which is exactly the inheritance the
+        // contract requires. routes() would publish this write endpoint
+        // unauthenticated.
+        if ($this->hasServerDriver()) {
+            $panel->authenticatedRoutes(fn (): mixed => Route::post(
+                'filament-tours/{tour}/seen',
+                MarkTourSeenController::class,
+            )->name('filament-tours.seen'));
+        }
     }
 
     public function boot(Panel $panel): void
     {
         //
+    }
+
+    /**
+     * Whether persistence lives on the server for this request.
+     *
+     * The browser-local default holds no server state, so there is nothing to
+     * write and therefore no endpoint to register or attack.
+     */
+    protected function hasServerDriver(): bool
+    {
+        return config('filament-tours.state', 'local') !== 'local';
     }
 
     public static function make(): static
@@ -91,7 +117,13 @@ class FilamentToursPlugin implements Plugin
                 'debug' => (bool) config('app.debug'),
                 // Null under the browser-local driver, and its nullness is how the
                 // client knows which driver is active — no separate mode flag.
-                'seenEndpoint' => null,
+                // Filament prefixes panel route names with 'filament.' AND the
+                // panel id, so the resolvable name is filament.{panel}.{name}.
+                // __TOUR__ is a placeholder the client substitutes — the id is
+                // only known in the browser, when a tour actually finishes.
+                'seenEndpoint' => $this->hasServerDriver()
+                    ? route("filament.{$panel->getId()}.filament-tours.seen", ['tour' => '__TOUR__'])
+                    : null,
                 'tours' => array_map(
                     fn (Tour $tour): array => $this->describe($tour),
                     $registry->resolveFor($scopes),

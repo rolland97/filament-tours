@@ -13,8 +13,8 @@ configured. Under the default browser-local driver it registers none (FR-020, FR
 |---|---|
 | Method | `POST` |
 | Path | `filament-tours/{tour}/seen`, under the panel's path prefix |
-| Route name | `filament-tours.seen` |
-| Middleware | **The panel's own authentication middleware stack** — the same one guarding every other page in that panel |
+| Route name | Declared as `filament-tours.seen`; **resolves as `filament.{panelId}.filament-tours.seen`** because Filament prefixes panel route names with both `filament.` and the panel id |
+| Middleware | **The panel's own authentication middleware stack** — registered via `Panel::authenticatedRoutes()`, not `Panel::routes()`, which would publish this write endpoint unauthenticated |
 | Request body | None |
 | Success | `204 No Content` |
 | Unknown tour id | `404`, and **no** call to the driver |
@@ -32,6 +32,14 @@ identity matters to it.
 
 - **Authentication is inherited, never reimplemented.** The route sits behind the panel's existing
   middleware. The package adds no auth of its own and must not weaken what the panel applies.
+
+  ⚠️ **Inherited means inherited, including when there is nothing to inherit.** Filament does not
+  apply auth middleware on its own — a panel declares it (`->authMiddleware([Authenticate::class])`,
+  which every generated panel has). A panel that declares none protects nothing, and this endpoint
+  is then no more exposed than the panel's own pages, which are also public. That is the host's
+  configuration, not this package's to override. It was found the honest way: the test panel
+  declared no auth, an anonymous POST returned 204, and the assertion failed until the harness was
+  made realistic.
 - **CSRF applies**, as it does to any stateful POST in a Laravel web middleware group. The client
   sends the token the panel already exposes.
 - **The `{tour}` segment is validated against the registry before use.** An id that names no

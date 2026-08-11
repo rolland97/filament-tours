@@ -8,6 +8,7 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
+use InvalidArgumentException;
 use Livewire\Features\SupportTesting\Testable;
 use Rolland\FilamentTours\Commands\ListToursCommand;
 use Rolland\FilamentTours\Contracts\TourState;
@@ -58,9 +59,39 @@ class FilamentToursServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        // Minimal binding: the browser-local default. Resolving a host
-        // class-string from config('filament-tours.state') lands in T064.
-        $this->app->bind(TourState::class, LocalStorageState::class);
+        // bind(), not singleton(): the value is read per resolution so a host
+        // (or a test) switching config does not need the container rebuilt.
+        $this->app->bind(TourState::class, function (): TourState {
+            $configured = config('filament-tours.state', 'local');
+
+            if ($configured === 'local') {
+                return new LocalStorageState;
+            }
+
+            // Fail loudly rather than falling back. A host that mistyped its
+            // driver class must not silently get browser-local persistence —
+            // that is the difference between "seen" surviving a device change
+            // and not, and it would be invisible until someone noticed a tour
+            // replaying.
+            if (! is_string($configured) || ! class_exists($configured)) {
+                throw new InvalidArgumentException(sprintf(
+                    "config('filament-tours.state') is [%s], which is neither 'local' nor an existing class.",
+                    is_string($configured) ? $configured : get_debug_type($configured),
+                ));
+            }
+
+            $driver = $this->app->make($configured);
+
+            if (! $driver instanceof TourState) {
+                throw new InvalidArgumentException(sprintf(
+                    'config(\'filament-tours.state\') is [%s], which does not implement %s.',
+                    $configured,
+                    TourState::class,
+                ));
+            }
+
+            return $driver;
+        });
     }
 
     public function packageBooted(): void

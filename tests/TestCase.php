@@ -13,6 +13,7 @@ use Filament\Schemas\SchemasServiceProvider;
 use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\Concerns\WithWorkbench;
@@ -25,6 +26,23 @@ class TestCase extends Orchestra
 {
     use LazilyRefreshDatabase;
     use WithWorkbench;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Tours are for authenticated panel users — the spec's Assumptions say
+        // so, and the test panel now declares auth middleware like a real one.
+        // Tests that care about anonymous access log out explicitly.
+        $user = new User;
+        $user->forceFill([
+            'id' => 1,
+            'name' => 'Test User',
+            'email' => 'test@example.test',
+        ]);
+
+        $this->actingAs($user);
+    }
 
     protected function getPackageProviders($app)
     {

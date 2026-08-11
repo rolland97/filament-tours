@@ -23,6 +23,6 @@ return [
     |
     */
 
-    'state' => 'local',
+    'state' => env('FILAMENT_TOURS_STATE', 'local'),
 
 ];

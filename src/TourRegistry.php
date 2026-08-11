@@ -84,8 +84,22 @@ class TourRegistry
     {
         return array_values(array_filter(
             $this->all(),
-            fn (Tour $tour): bool => $this->applies($tour, $scopes),
+            fn (Tour $tour): bool => $this->applies($tour, $scopes) && ! $this->alreadySeen($tour),
         ));
+    }
+
+    /**
+     * Drop run-once tours a server-side driver reports as seen.
+     *
+     * Filtering here rather than in the browser is what keeps the promise that
+     * a seen tour's copy never reaches the page at all (FR-008). The default
+     * browser-local driver answers false for everything, so under it nothing is
+     * dropped and localStorage decides — which is correct, because under that
+     * driver the server genuinely does not know.
+     */
+    protected function alreadySeen(Tour $tour): bool
+    {
+        return $tour->isOnce() && $this->state->hasSeen($tour->getId());
     }
 
     /**
