@@ -162,20 +162,20 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 
 ### Tests for User Story 3 ⚠️ write first, confirm they fail
 
-- [ ] T051 [P] [US3] Test that two tours matching one page both appear in the payload, in registration order (FR-011, FR-024), in `tests/PayloadTest.php`
-- [ ] T052 [P] [US3] Test that `StartTourAction::make('id')` renders and dispatches the `filament-tours:start` event with the correct tour id, in `tests/StartTourActionTest.php`
+- [X] T051 [P] [US3] Test that two tours matching one page both appear in the payload, in registration order (FR-011, FR-024), in `tests/PayloadTest.php`
+- [X] T052 [P] [US3] Test that `StartTourAction::make('id')` renders and dispatches the `filament-tours:start` event with the correct tour id, in `tests/StartTourActionTest.php`
 
 ### Implementation for User Story 3
 
-- [ ] T053 [P] [US3] Create `StartTourAction` in `src/Actions/StartTourAction.php` per `contracts/php-api.md`, dispatching `filament-tours:start`
-- [ ] T054 [US3] Implement the `filament-tours:start` listener in `resources/js/index.js` per `contracts/js-events.md`: run regardless of seen state, destroy any running tour first, do not re-mark seen
-- [ ] T055 [US3] Handle an unknown tour id in `resources/js/index.js` — nothing starts, no user-facing error, console warning under debug
-- [ ] T056 [US3] Enforce single auto-start in `resources/js/index.js` — scan the ordered payload and start only the first eligible tour (FR-024, FR-027)
-- [ ] T057 [US3] Run `npm run build` and commit the updated `resources/dist/`
+- [X] T053 [P] [US3] Create `StartTourAction` in `src/Actions/StartTourAction.php` per `contracts/php-api.md`, dispatching `filament-tours:start`
+- [X] T054 [US3] Implement the `filament-tours:start` listener in `resources/js/index.js` per `contracts/js-events.md`: run regardless of seen state, destroy any running tour first, do not re-mark seen
+- [X] T055 [US3] Handle an unknown tour id in `resources/js/index.js` — nothing starts, no user-facing error, console warning under debug
+- [X] T056 [US3] Enforce single auto-start in `resources/js/index.js` — scan the ordered payload and start only the first eligible tour (FR-024, FR-027)
+- [X] T057 [US3] Run `npm run build` and commit the updated `resources/dist/`
 
 ### Verification for User Story 3
 
-- [ ] T058 [US3] Manually verify Gate 3 in [quickstart.md](./quickstart.md) in a browser: with two tours matching one page, the first auto-starts and the **second** can then be started by id without reloading (FR-025, spec User Story 3 scenario 4)
+- [X] T058 [US3] Manually verify Gate 3 in [quickstart.md](./quickstart.md) in a browser: with two tours matching one page, the first auto-starts and the **second** can then be started by id without reloading (FR-025, spec User Story 3 scenario 4)
 
 **Checkpoint**: Replay works; two overlays are never open at once.
 

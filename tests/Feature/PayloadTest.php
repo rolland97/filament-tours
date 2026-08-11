@@ -90,3 +90,11 @@ it('keeps a tour without the run-once flag in the payload, unmarked', function (
         ->and($tours[0]['id'])->toBe('page-b-repeating')
         ->and($tours[0]['once'])->toBeFalse();
 });
+
+it('sends every matching tour, in registration order', function () {
+    // FR-011 / FR-024: order is meaningful because it decides which tour
+    // auto-starts. The rest stay in the payload so they can be replayed.
+    $tours = payloadFrom(PageA::getUrl() . '?second=1')['tours'];
+
+    expect(array_column($tours, 'id'))->toBe(['page-a-tour', 'page-a-second']);
+});
