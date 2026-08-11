@@ -1,8 +1,8 @@
 # Resume Handoff — `rolland97/filament-tours`
 
-Rewritten 2026-08-11. **Read this first when picking the work up.**
+Rewritten 2026-08-11, after v1 merged and history was rewritten. **Read this first.**
 
-## Status: **v1 is functionally complete. 86 of 86 tasks done, on `001-tours-v1`.**
+## Status: **v1 is merged on `main`. 86 of 86 tasks done.**
 
 A tour defined on a panel provider runs on the page it targets, once, degrades when the page
 changes underneath it, replays on demand, moves its persistence server-side on one config value,
@@ -10,31 +10,57 @@ and leaks nothing onto pages it does not target.
 
 | | |
 |---|---|
-| Branch | `001-tours-v1`, 20 commits ahead of `main`, **pushed and in sync** |
-| CI | ✅ green — 24/24 test legs, phpstan, code style |
+| Branch | **`main`** — `001-tours-v1` was merged (PR #4) and deleted |
+| CI | ✅ green — 24/24 test legs, phpstan, zizmor, code style |
 | Suite | 84 passed, 258 assertions |
 | Requirements | 28 FR + 10 SC, **all covered and verified** |
 | Packagist | ⚠️ **not submitted, no tag exists.** Deliberate — see below |
 
-## ▶ Next action: three decisions, none of them mine
+## ⚠️ History was rewritten on 2026-08-11
 
-The work is done. What remains is release judgement.
+`.claude/` and most of `.specify/` are **no longer tracked, and no longer in history**. They were
+stripped from every commit with `git filter-repo` and `main` was force-pushed, because installed
+tooling does not belong in a public repository — it is the same category as `vendor/`.
 
-1. **Review the PR** — open against `main`.
-2. **Merge**, when you are satisfied.
-3. **Tag and submit to Packagist** — ⚠️ **irreversible.** A published version cannot be retracted.
-   Nothing forces this to happen with the merge, and there is no harm in letting the package sit on
-   `main` unpublished until a real consumer needs it.
+Consequences that matter to you:
+
+- **Every SHA changed.** Any clone made before that date is orphaned. Delete it and re-clone.
+- **A fresh clone has no `.claude/` or `.specify/` tooling.** Reinstall spec-kit and the skills;
+  the two files that are genuine project state — `.specify/memory/constitution.md` and
+  `.specify/extensions.yml` — are still tracked and arrive with the clone.
+- **The only pre-rewrite backup** is `~/backups/filament-tours-pre-filter-repo-2026-08-11.bundle`
+  on this machine, with a README beside it. A local branch called `backup/pre-filter-repo` was
+  also made and is **worthless** — filter-repo rewrote it too, despite the name.
+
+`AGENTS.md` and `specs/` were deliberately kept, in history and in the tree. They are
+documentation, not tooling.
+
+## ▶ Setting up (including on a second machine)
+
+```bash
+git clone https://github.com/rolland97/filament-tours.git
+cd filament-tours
+composer install && npm install      # both gitignored
+./vendor/bin/pest --no-coverage      # expect 84 passed
+```
+
+Then reinstall the agent tooling, which the clone no longer carries. ⚠️ **This path is untested** —
+if it does not reproduce cleanly, the fallback is a private companion repo holding `.claude/` and
+`.specify/`, synced with git and symlinked into place locally.
+
+## ▶ What is left
+
+The engineering is finished. What remains is release judgement:
+
+1. **Tag and submit to Packagist** — ⚠️ **irreversible.** A published version cannot be retracted.
+   There is no harm in letting the package sit on `main` unpublished until a real consumer needs it,
+   and building against it unpublished is how you find out whether the frozen API survives contact
+   with actual use.
+2. **Watch for dependabot** to raise a fresh zizmor-action PR. The old one (#3) was closed because
+   the rewrite destroyed its base and turned a one-line bump into an 80-file diff.
 
 The first consumer is intended to be the **procurement** app's backlog **#18**, which gets its own
 spec-kit cycle in that repository.
-
-```bash
-cd ~/projects/filament-tours
-git switch 001-tours-v1
-composer install && npm install     # both gitignored
-./vendor/bin/pest --no-coverage     # expect 84 passed
-```
 
 ## What v1 does, in one place
 
@@ -108,5 +134,6 @@ Design §8's "no JavaScript test suite in v1" still stands. Trap 1 is what that 
 
 ## Commits
 
-`git log --oneline main..HEAD` is authoritative — 20 commits, from the constitution through to the
-final analysis.
+`git log --oneline` on `main` is authoritative. Note that every SHA predating 2026-08-11 was
+changed by the history rewrite, so any commit id quoted in an older document or PR will not
+resolve.
