@@ -19,14 +19,55 @@ function archivedFiles(): array
     // green. `git stash create` writes a throwaway commit object for the current
     // tree without touching the stash list or the index; it returns nothing when
     // the tree is clean, in which case HEAD is already the right answer.
-    $tree = trim((string) shell_exec("cd {$root} && git stash create 2>/dev/null")) ?: 'HEAD';
+    // `git -C` and an output file, rather than `cd … && git archive | tar -t`.
+    // Chained POSIX shell commands and pipes are not valid under cmd.exe, which
+    // is how the first version of this passed everywhere and failed only on the
+    // Windows leg of CI. Letting git write a zip and reading it with PHP needs
+    // no shell features at all.
+    $tree = trim((string) shell_exec(sprintf('git -C %s stash create', escapeshellarg($root)))) ?: 'HEAD';
 
-    exec("cd {$root} && git archive --format=tar {$tree} 2>/dev/null | tar -t 2>/dev/null", $lines, $status);
+    $zipPath = tempnam(sys_get_temp_dir(), 'ft-dist-') . '.zip';
+
+    exec(
+        sprintf(
+            'git -C %s archive --format=zip --output=%s %s',
+            escapeshellarg($root),
+            escapeshellarg($zipPath),
+            escapeshellarg($tree),
+        ),
+        $output,
+        $status,
+    );
 
     expect($status)->toBe(0, 'git archive failed; is this a git checkout?');
 
-    return array_values(array_filter($lines, fn (string $l): bool => ! str_ends_with($l, '/')));
+    $zip = new ZipArchive;
+
+    expect($zip->open($zipPath))->toBeTrue("could not read the archive at {$zipPath}");
+
+    $files = [];
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = (string) $zip->getNameIndex($i);
+
+        if (! str_ends_with($name, '/')) {
+            $files[] = $name;
+        }
+    }
+
+    $zip->close();
+    @unlink($zipPath);
+
+    return $files;
 }
+
+// CI installs ext-zip, but a contributor's machine might not. Skipping is
+// honest; failing would blame them for something unrelated to their change.
+beforeEach(function () {
+    if (! class_exists(ZipArchive::class)) {
+        test()->markTestSkipped('ext-zip is needed to inspect the distribution archive.');
+    }
+});
 
 it('ships the runtime a consumer cannot work without', function () {
     $files = archivedFiles();
