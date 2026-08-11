@@ -1,5 +1,7 @@
 <?php
 
+// FR-022: no migration ships. FR-004: no translation files ship.
+
 /**
  * Constitution Principle II — the host owns its data and its words.
  *

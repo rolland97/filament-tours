@@ -1,5 +1,8 @@
 <?php
 
+// FR-018 / SC-006: an inventory of what is registered, which does not
+// claim to have checked anything it cannot check.
+
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;
 
 it('lists every registered tour with its page, step count and run-once flag', function () {

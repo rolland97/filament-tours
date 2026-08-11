@@ -1,5 +1,8 @@
 <?php
 
+// FR-019: the two-method state contract, selected by one config value.
+// FR-020: under the browser-local default, no route exists at all.
+
 use Illuminate\Support\Facades\Route;
 use Rolland\FilamentTours\Contracts\TourState;
 use Rolland\FilamentTours\State\LocalStorageState;

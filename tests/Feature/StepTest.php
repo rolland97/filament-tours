@@ -1,5 +1,8 @@
 <?php
 
+// FR-001: the fluent definition surface, frozen for v1.
+// FR-003: selectors are raw CSS — validated for emptiness, never for matching.
+
 use Rolland\FilamentTours\Step;
 
 it('keeps the selector it was made with', function () {

@@ -1,5 +1,8 @@
 <?php
 
+// FR-009: assets are bundled and registered through Filament, so a consumer
+// configures no package manager and no bundler.
+
 use Filament\Support\Facades\FilamentAsset;
 
 /**

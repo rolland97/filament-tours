@@ -259,7 +259,7 @@ Single Composer package. Source at `src/`, tests at `tests/`, client at `resourc
 - [X] T083 [P] Document the state-driver upgrade path in `README.md`, including the ⚠️ that browser-local is per-browser and unsuitable for compliance-shaped requirements (D2)
 - [X] T084 Run the full check: `composer test && composer analyse && composer test:lint && npm run build`, and confirm `resources/dist` is committed
 - [X] T085 Walk every gate in [quickstart.md](./quickstart.md) end to end and record the result honestly — if something fails, say so with the output (constitution Principle IV, **R-027**). **Walked 2026-08-11**, all gates held: the required XSS probe shows no execution and zero injected nodes with the client as it stands after US3 and US4; a three-step tour with a missing middle selector shows "First" and "Third"; a tour whose selectors all miss shows no popover and no overlay; `livewire:navigating` destroys a running tour and leaves localStorage untouched. Server-driver flow (Gate 4) was walked during T059–T071 and is unchanged since
-- [ ] T086 Re-run `/speckit-analyze` against `specs/001-tours-v1/` and confirm the gaps closed by these revisions — FR-025, FR-026, SC-004, the CSS asset, and the two test-first orderings — now map to tasks, and that no new drift appeared
+- [X] T086 Re-run `/speckit-analyze` against `specs/001-tours-v1/` and confirm the gaps closed by these revisions — FR-025, FR-026, SC-004, the CSS asset, and the two test-first orderings — now map to tasks, and that no new drift appeared
 
 ---
 
