@@ -28,12 +28,16 @@
 /psalm.xml.dist         export-ignore
 /testbench.yaml         export-ignore
 
-# Spec-kit and agent configuration. Measured before exclusion: 70 tracked files
-# across .specify and .claude alone, bound for every consumer's vendor/.
-/.specify               export-ignore
-/.claude                export-ignore
+# Agent-facing documentation. AGENTS.md and specs/ are deliberately kept in the
+# repository — they are documentation, not tooling — but a consumer's vendor/ has
+# no use for either.
+#
+# .specify/ and .claude/ are no longer listed because they are no longer tracked
+# at all (see .gitignore). The two carve-outs that remain tracked are named
+# individually below, since a rule for an untracked path is dead weight.
 /AGENTS.md              export-ignore
 /specs                  export-ignore
+/.specify               export-ignore
 
 # Build sources. Consumers receive resources/dist, never the inputs — they have
 # no bundler and are not expected to acquire one (design D7, SC-004).

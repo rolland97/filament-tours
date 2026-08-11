@@ -11,20 +11,23 @@ function archivedFiles(): array
 {
     $root = dirname(__DIR__, 2);
 
-    // Archive the working tree, not HEAD.
+    // Archive the current index, not HEAD.
     //
     // `git archive HEAD` reads the *committed* .gitattributes, so a broken
-    // export-ignore rule would pass here and only fail one commit later. This
-    // was caught by planting exactly that regression and watching the test stay
-    // green. `git stash create` writes a throwaway commit object for the current
-    // tree without touching the stash list or the index; it returns nothing when
-    // the tree is clean, in which case HEAD is already the right answer.
+    // export-ignore rule would pass here and fail only one commit later —
+    // confirmed by planting exactly that regression and watching this stay green.
+    //
+    // write-tree, not `git stash create`: stash also captures worktree files
+    // that are staged for deletion but still sit on disk, which reported
+    // `.claude/` as shipping after the index had already dropped it. A release
+    // ships a commit, and write-tree is what a commit of this index would hold.
+    //
     // `git -C` and an output file, rather than `cd … && git archive | tar -t`.
     // Chained POSIX shell commands and pipes are not valid under cmd.exe, which
     // is how the first version of this passed everywhere and failed only on the
     // Windows leg of CI. Letting git write a zip and reading it with PHP needs
     // no shell features at all.
-    $tree = trim((string) shell_exec(sprintf('git -C %s stash create', escapeshellarg($root)))) ?: 'HEAD';
+    $tree = trim((string) shell_exec(sprintf('git -C %s write-tree', escapeshellarg($root)))) ?: 'HEAD';
 
     $zipPath = tempnam(sys_get_temp_dir(), 'ft-dist-') . '.zip';
 
@@ -87,10 +90,14 @@ it('ships the runtime a consumer cannot work without', function () {
 it('ships no development tooling or build sources', function () {
     $files = archivedFiles();
 
+    // .claude/ and .specify/ are gitignored rather than export-ignored, so they
+    // cannot reach the archive at all. Still asserted: gitignore is one edit
+    // away from being undone, and this is the assertion that would notice.
     $forbidden = [
-        '.specify/',      // spec-kit installation
-        '.claude/',       // agent configuration
-        'specs/',         // specification artifacts
+        '.specify/',      // spec-kit installation (gitignored, bar two carve-outs)
+        '.claude/',       // agent configuration (gitignored)
+        'specs/',         // specification artifacts (tracked, export-ignored)
+        'AGENTS.md',      // tracked, export-ignored
         'tests/',         // this suite
         'docs/',          // internal documentation
         'bin/',           // build scripts
@@ -103,7 +110,7 @@ it('ships no development tooling or build sources', function () {
             ->toBeEmpty("[{$prefix}] is in the distribution archive; add it to .gitattributes as export-ignore.");
     }
 
-    foreach (['AGENTS.md', 'package.json', 'package-lock.json', 'composer.lock', 'phpunit.xml.dist'] as $file) {
+    foreach (['package.json', 'package-lock.json', 'composer.lock', 'phpunit.xml.dist'] as $file) {
         expect($files)->not->toContain($file);
     }
 });
