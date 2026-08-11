@@ -35,6 +35,7 @@ export default function filamentTours(payload = {}) {
 
         instance: null,
         teardown: null,
+        onStartRequest: null,
         suppressSeen: false,
         // Tours whose seen-write failed. In memory only: this page session, no
         // retry, and the server is authoritative again on the next load.
@@ -47,6 +48,10 @@ export default function filamentTours(payload = {}) {
             // elements that happen to match the same selector.
             this.teardown = () => this.stopTour()
             document.addEventListener('livewire:navigating', this.teardown)
+
+            // Replay, from StartTourAction or from any Alpine/Livewire context.
+            this.onStartRequest = (event) => this.startById(event?.detail?.tour)
+            window.addEventListener('filament-tours:start', this.onStartRequest)
 
             // Resolve each candidate at most once. Calling resolveSteps() from
             // both the eligibility check and start() warned twice per missing
@@ -72,7 +77,34 @@ export default function filamentTours(payload = {}) {
          */
         destroy() {
             document.removeEventListener('livewire:navigating', this.teardown)
+            window.removeEventListener('filament-tours:start', this.onStartRequest)
             this.stopTour()
+        },
+
+        /**
+         * Run a tour by id, on demand.
+         *
+         * Ignores seen state entirely — replay is the whole point, and a user
+         * who asked for the tour has overridden whatever "seen" said. Finishing
+         * a replay does not re-mark it either: it is already seen.
+         */
+        startById(tourId) {
+            if (! tourId) {
+                return
+            }
+
+            const tour = this.tours.find((candidate) => candidate.id === tourId)
+
+            if (! tour) {
+                // Nothing starts and the user sees no error. A replay control
+                // pointing at a tour that does not apply here is a developer
+                // mistake, not something to interrupt a user over.
+                this.warn(`tour "${tourId}": not available on this page, ignoring start request`)
+
+                return
+            }
+
+            this.start(tour, null, { replay: true })
         },
 
         /**
@@ -120,7 +152,7 @@ export default function filamentTours(payload = {}) {
                 }))
         },
 
-        start(tour, resolved = null) {
+        start(tour, resolved = null, { replay = false } = {}) {
             const steps = resolved ?? this.resolveSteps(tour)
 
             if (steps.length === 0) {
@@ -136,7 +168,9 @@ export default function filamentTours(payload = {}) {
                     // Navigating away is NOT — they neither finished nor
                     // dismissed it, so a run-once tour must still be offered
                     // next visit (FR-012).
-                    if (! this.suppressSeen) {
+                    // A replay is already seen; re-recording it is a wasted
+                    // write, and under a server driver a wasted request.
+                    if (! this.suppressSeen && ! replay) {
                         this.markSeen(tour)
                     }
 

@@ -111,6 +111,15 @@ class TestPanelProvider extends PanelProvider
                             Step::make('[data-tour="thing"]')->title('Again')->body('Every visit.'),
                         ]),
 
+                    // A second tour on the same page, behind a flag so the
+                    // single-tour assertions elsewhere stay meaningful. Proves
+                    // registration order and that only the first auto-starts.
+                    Tour::make('page-a-second')
+                        ->when(fn (): bool => request()->boolean('second'))
+                        ->steps([
+                            Step::make('[data-tour="other"]')->title('Second')->body('Runs on demand.'),
+                        ]),
+
                     // Rot, staged. The middle step points at nothing, so the
                     // client must skip it and still run the other two (FR-014).
                     Tour::make('page-b-partial')
