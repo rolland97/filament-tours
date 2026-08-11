@@ -23,13 +23,23 @@ $dispatch('filament-tours:start', { tour: 'itrf-create' })
 |---|---|---|
 | `tour` | `string` | Tour id. Must be present in the current page's payload. |
 
-**Behaviour**:
+**Behaviour** (implemented as `startById()`):
 
-- Runs the named tour **regardless of seen state** — replay is the whole point (User Story 3).
+- Runs the named tour **regardless of seen state** — replay is the whole point (User Story 3). It
+  bypasses the `isSeen()` check the auto-start path applies: a user who asked for the tour has
+  overridden whatever "seen" said.
 - A tour id not in the current payload: **nothing starts, no error surfaces to the user**
-  (User Story 3, scenario 3). Console warning under `app.debug`.
+  (User Story 3, scenario 3). Console warning under debug.
+- An empty or missing `tour` detail is ignored silently.
 - A tour already running is destroyed first, so a replay cannot stack overlays on top of a live one.
-- Replay does **not** re-mark the tour seen. It already is.
+- Replay does **not** re-mark the tour seen. `start()` takes a `replay` flag that suppresses the
+  `markSeen()` call in `onDestroyed` — the tour is already seen, so the write would be wasted, and
+  under a server driver it would be a wasted HTTP request as well.
+- The listener is bound on `window` in `init()` and unbound in Alpine's `destroy()`.
+
+`StartTourAction` dispatches exactly this event and does nothing else. The tour id passes through
+`Js::from()` on the PHP side, so an id containing a quote cannot close the Alpine expression and
+append its own code — defence in depth, since ids are developer-authored.
 
 `StartTourAction` dispatches exactly this event — the PHP action is a convenience over it, not a
 second mechanism.

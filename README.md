@@ -232,6 +232,12 @@ class DatabaseTourState implements TourState
 'state' => \App\Support\DatabaseTourState::class,
 ```
 
+Or leave the config alone and set it per environment:
+
+```dotenv
+FILAMENT_TOURS_STATE="App\Support\DatabaseTourState"
+```
+
 Which user "seen" refers to is your driver's business — it reads `auth()->user()` itself, so this
 package never forms an opinion about identity.
 

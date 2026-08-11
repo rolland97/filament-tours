@@ -1,5 +1,8 @@
 <?php
 
+// FR-002: tours are registered centrally, per panel.
+// FR-006: applicability is decided server-side, before anything is sent.
+
 use Rolland\FilamentTours\State\LocalStorageState;
 use Rolland\FilamentTours\Step;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;

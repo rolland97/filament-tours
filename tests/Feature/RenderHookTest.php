@@ -1,5 +1,8 @@
 <?php
 
+// FR-010: the payload is injected through the panel's own render hook.
+// FR-007 / SC-002: what does not apply is never serialised.
+
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageB;
 

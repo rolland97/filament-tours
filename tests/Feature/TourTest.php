@@ -1,5 +1,8 @@
 <?php
 
+// FR-001: the fluent definition surface.
+// FR-005: page targeting is by class reference, with a predicate as the escape hatch.
+
 use Rolland\FilamentTours\Step;
 use Rolland\FilamentTours\Tests\Panel\Pages\PageA;
 use Rolland\FilamentTours\Tour;

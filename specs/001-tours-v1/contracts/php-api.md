@@ -137,7 +137,7 @@ an opinion about identity that the package has no right to hold.
 ```php
 // config/filament-tours.php
 return [
-    'state' => 'local',
+    'state' => env('FILAMENT_TOURS_STATE', 'local'),
 ];
 ```
 
@@ -145,6 +145,16 @@ return [
 |---|---|
 | `'local'` | Browser-local. No server state, **no route registered** (FR-020). |
 | A class-string implementing `TourState` | Server-side. Registry filters seen tours before render; one route registered behind panel auth (FR-021). |
+
+**`FILAMENT_TOURS_STATE` is a supported way to set this**, so a host can differ per environment —
+browser-local in local development, a database driver in production — without publishing the config
+file. A published config file may of course hardcode the value instead.
+
+> Recorded honestly: this `env()` call was **not** a design decision. It entered the shipped config
+> during T059–T071 so `testbench serve` could point at a session-backed driver for browser
+> verification, and `/speckit-analyze` (T086) caught that it had widened the configuration contract
+> without appearing in any contract. It is kept because env-configurable state is a reasonable thing
+> for a host to want and reverting would gain nothing — but it is a decision now, not a leftover.
 
 Any other value is a configuration error and should fail loudly at boot rather than silently
 falling back to `'local'` — a host that typed its driver class wrong must not quietly get
@@ -160,6 +170,19 @@ php artisan tours:list [--panel=]
 
 Every registered tour: id, page class or `when()`, step count, `once` (FR-018, SC-006).
 `--panel` defaults to the panel Filament reports as default.
+
+Output shape, one tour per pair of lines:
+
+```
+Tours registered on panel [admin]:
+
+  welcome  (1 step, once: yes)
+      applies to: App\Filament\Pages\Welcome
+
+   INFO  Step selectors are not checked: that needs a browser. …
+```
+
+Exits non-zero when the named panel has no registry bound — the plugin is not registered on it.
 
 **Not rendered as a table.** Symfony wraps table cells to the terminal width, which splits a
 fully-qualified page class across lines and makes it impossible to copy or grep — the one thing a
