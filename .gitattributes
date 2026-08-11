@@ -1,28 +1,57 @@
 # Path-based git attributes
 # https://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
+#
+# Everything listed here is excluded from the distribution archive, which is what
+# a consumer's vendor/ actually receives. The rule: ship the runtime, keep the
+# workshop. Constitution Principle V.
+#
+# What MUST keep shipping, and is deliberately absent from this list:
+#   /src /config /resources/views /resources/dist /composer.json
+#   /README.md /LICENSE.md /CHANGELOG.md
+# resources/dist in particular is the built asset — without it the package is
+# inert, and no consumer can rebuild it because the sources are excluded below.
 
-# Ignore all test and documentation with "export-ignore".
+# Development tooling
 /.github                export-ignore
 /.gitattributes         export-ignore
 /.gitignore             export-ignore
-/.idea                  export-ignore
-/.prettierrc            export-ignore
-/.package-lock.json     export-ignore
 /.editorconfig          export-ignore
-/.php_cs.dist.php       export-ignore
+/.idea                  export-ignore
 /.vscode                export-ignore
-/art                    export-ignore
-/docs                   export-ignore
-/images                 export-ignore
-/tests                  export-ignore
-/package.json           export-ignore
+/.npmrc                 export-ignore
+/.prettierrc            export-ignore
 /phpstan-baseline.neon  export-ignore
 /phpstan.neon.dist      export-ignore
-/postcss.config.js      export-ignore
 /phpunit.xml.dist       export-ignore
 /pint.json              export-ignore
 /psalm.xml              export-ignore
 /psalm.xml.dist         export-ignore
-/tailwind.config.js     export-ignore
 /testbench.yaml         export-ignore
+
+# Spec-kit and agent configuration. Measured before exclusion: 70 tracked files
+# across .specify and .claude alone, bound for every consumer's vendor/.
+/.specify               export-ignore
+/.claude                export-ignore
+/AGENTS.md              export-ignore
+/specs                  export-ignore
+
+# Build sources. Consumers receive resources/dist, never the inputs — they have
+# no bundler and are not expected to acquire one (design D7, SC-004).
+/bin                    export-ignore
+/resources/js           export-ignore
+/resources/css          export-ignore
+/package.json           export-ignore
+/package-lock.json      export-ignore
+/postcss.config.js      export-ignore
+/tailwind.config.js     export-ignore
+
+# Lock file: a library's lock is its own business, never the consumer's.
+/composer.lock          export-ignore
+
+# Tests and documentation
+/tests                  export-ignore
+/docs                   export-ignore
+/art                    export-ignore
+/images                 export-ignore
 /UPGRADING.md           export-ignore
+/.php_cs.dist.php       export-ignore

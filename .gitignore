@@ -16,3 +16,6 @@ phpunit.xml
 phpstan.neon
 testbench.yaml
 vendor
+
+# Playwright MCP scratch output (browser verification runs)
+.playwright-mcp

@@ -20,6 +20,16 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <!--
+            Pinned so the suite cannot inherit an ambient APP_ENV from the
+            developer's shell. It did: a local APP_ENV=local made Filament's
+            Authenticate middleware permit a user model that does not implement
+            FilamentUser, so 22 tests passed here and returned 403 in CI.
+            Local and CI must agree for a green suite to mean anything.
+        -->
+        <env name="APP_ENV" value="testing" force="true"/>
+    </php>
     <coverage>
         <report>
             <html outputDirectory="build/coverage"/>
