@@ -47,6 +47,28 @@ php artisan filament:assets
 That is the whole installation. `filament:assets` is Filament's own step, and most applications
 already run it after `composer update`.
 
+> [!IMPORTANT]
+> **Not on Packagist yet, so the command above does not resolve today.** No version has been
+> tagged. Until one is, point Composer at the repository directly:
+>
+> ```jsonc
+> // composer.json
+> "repositories": [
+>     { "type": "vcs", "url": "https://github.com/rolland97/filament-tours" }
+> ]
+> ```
+>
+> ```bash
+> composer require rolland97/filament-tours:dev-main@dev
+> php artisan filament:assets
+> ```
+>
+> The hold is deliberate rather than a gap in the work: publishing a version cannot be undone,
+> and building a real application against the package *before* it is tagged is how we find out
+> whether the v1 API survives contact with use. Everything below describes the package as it
+> stands on `main` — it is complete and tested, not a preview. The Packagist badges above will
+> stay blank until the first release.
+
 **No custom theme is needed.** driver.js and its stylesheet are bundled into the package and
 registered through Filament's asset system, so there is no `@source` line to add and nothing for
 your build to compile. If you have seen those instructions in other Filament plugins, they do not
