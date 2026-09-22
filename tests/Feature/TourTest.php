@@ -17,6 +17,15 @@ it('does not run once unless asked to', function () {
         ->and(Tour::make('a')->once(false)->isOnce())->toBeFalse();
 });
 
+it('starts by itself unless told to wait for the ask', function () {
+    // FR-030: a tour that describes a page someone is trying to USE should not
+    // cover it uninvited. The flag says "declared here, offered here, but only
+    // when asked" — which the auto-run path honours and the replay path ignores.
+    expect(Tour::make('a')->isManual())->toBeFalse()
+        ->and(Tour::make('a')->manual()->isManual())->toBeTrue()
+        ->and(Tour::make('a')->manual(false)->isManual())->toBeFalse();
+});
+
 it('has no page and no predicate until given one', function () {
     $tour = Tour::make('a');
 

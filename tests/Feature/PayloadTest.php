@@ -23,9 +23,10 @@ it('describes a matching tour in full', function () {
 
     $tour = $tours[0];
 
-    expect($tour)->toHaveKeys(['id', 'once', 'steps'])
+    expect($tour)->toHaveKeys(['id', 'once', 'manual', 'steps'])
         ->and($tour['id'])->toBe('page-a-tour')
         ->and($tour['once'])->toBeTrue()
+        ->and($tour['manual'])->toBeFalse()
         ->and($tour['steps'])->toHaveCount(2);
 
     expect($tour['steps'][0])->toHaveKeys(['selector', 'title', 'body', 'side', 'align'])

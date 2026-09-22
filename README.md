@@ -124,6 +124,7 @@ That is all of it. Nothing else is public in v1.
 | `->for(string $pageClass)` | Applies on that page. Validated at registration — a typo fails loudly. |
 | `->when(Closure $predicate)` | Applies when the predicate returns true. Evaluated per request, server-side. |
 | `->once()` | Records that the user has seen it, so it does not run again. |
+| `->manual()` | Belongs to the page and reaches the browser, but does not start uninvited — only `StartTourAction` or the start event runs it. |
 | `->steps(array $steps)` | The steps, in order. At least one is required. |
 
 **`Step`**
@@ -138,6 +139,29 @@ That is all of it. Nothing else is public in v1.
 
 A tour with neither `->for()` nor `->when()` applies nowhere. That is deliberate: "everywhere" is a
 predicate you write, not a default this package assumes.
+
+### Tours that wait to be asked
+
+`->manual()` is for a tour describing a page someone came to *use*. An overlay over a form the
+moment it opens is in the way of the task — and, on a page with an automated journey, in the way of
+the test too. A manual tour still belongs to its page and still reaches the browser; it simply does
+not start by itself:
+
+```php
+Tour::make('create-request')
+    ->for(CreateRequest::class)
+    ->manual()
+    ->once()
+    ->steps([...])
+```
+
+Pair it with a replay control (below) so there is something to ask with. `->manual()` and `->once()`
+are orthogonal: "has it been seen" and "does it start by itself" are different questions, and a
+manual tour that is also `once()` records itself when finished — which stops nothing, because
+nothing was starting it.
+
+`php artisan tours:list` reports this as `starts: when asked`, because a manual tour that never
+appears looks exactly like a broken selector until you know it was never going to start.
 
 ### Targeting elements
 

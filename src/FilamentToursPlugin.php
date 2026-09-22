@@ -140,6 +140,7 @@ class FilamentToursPlugin implements Plugin
         return [
             'id' => $tour->getId(),
             'once' => $tour->isOnce(),
+            'manual' => $tour->isManual(),
             'steps' => array_map(fn (Step $step): array => [
                 'selector' => $step->getSelector(),
                 'title' => $step->getTitle(),
