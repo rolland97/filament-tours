@@ -24,6 +24,8 @@ final class Tour
 
     protected bool $once = false;
 
+    protected bool $manual = false;
+
     /** @var list<Step> */
     protected array $steps = [];
 
@@ -61,6 +63,27 @@ final class Tour
     public function once(bool $condition = true): static
     {
         $this->once = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Offer this tour here, but do not start it uninvited.
+     *
+     * The case this exists for: a tour that describes a page someone came to
+     * USE. An overlay over a form the moment it opens is in the way of the task,
+     * and on a page with an automated journey it is in the way of the test too.
+     * Marked manual, the tour still belongs to the page, still reaches the
+     * browser, and still runs from StartTourAction or the start event — it just
+     * waits to be asked.
+     *
+     * ⚠️ Orthogonal to once(): "has it been seen" and "does it start by itself"
+     * are different questions. A manual tour that is also once() records itself
+     * when finished, which stops nothing, because nothing was starting it.
+     */
+    public function manual(bool $condition = true): static
+    {
+        $this->manual = $condition;
 
         return $this;
     }
@@ -117,6 +140,11 @@ final class Tour
     public function isOnce(): bool
     {
         return $this->once;
+    }
+
+    public function isManual(): bool
+    {
+        return $this->manual;
     }
 
     /**

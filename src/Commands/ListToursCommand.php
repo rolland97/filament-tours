@@ -64,11 +64,15 @@ class ListToursCommand extends Command
                 ?? ($tour->getPredicate() !== null ? 'when() predicate' : 'nothing — no page and no predicate');
 
             $this->line(sprintf(
-                '  <options=bold>%s</>  (%d %s, once: %s)',
+                '  <options=bold>%s</>  (%d %s, once: %s, starts: %s)',
                 $tour->getId(),
                 count($tour->getSteps()),
                 count($tour->getSteps()) === 1 ? 'step' : 'steps',
                 $tour->isOnce() ? 'yes' : 'no',
+                // Worth a column of its own: a manual tour that never appears is
+                // indistinguishable from a broken selector until you know it was
+                // never going to start by itself.
+                $tour->isManual() ? 'when asked' : 'on arrival',
             ));
             $this->line("      applies to: {$applies}");
         }

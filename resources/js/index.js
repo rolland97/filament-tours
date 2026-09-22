@@ -57,6 +57,13 @@ export default function filamentTours(payload = {}) {
             // both the eligibility check and start() warned twice per missing
             // selector, which reads like two separate faults.
             for (const tour of this.tours) {
+                // Declared here, offered here, started only when asked. Nothing
+                // about a manual tour reaches this loop's job, which is deciding
+                // what runs uninvited.
+                if (tour.manual === true) {
+                    continue
+                }
+
                 if (this.isSeen(tour)) {
                     continue
                 }
