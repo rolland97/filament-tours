@@ -1,0 +1,84 @@
+/*
+ * A dark variant for the tour popover.
+ *
+ * driver.js paints the popover white with near-black text and offers no dark
+ * mode of its own, so on a dark panel it arrives as a white card — legible, but
+ * plainly a foreign object. Found by looking at it in a real application rather
+ * than by any test, which is the only way this kind of thing is ever found.
+ *
+ * ⚠️ Scoped to `.dark`, NEVER `@media (prefers-color-scheme: dark)`. Filament
+ * keeps the chosen appearance in localStorage and toggles `.dark` on <html>, so
+ * a media query paints for the operating system while the panel believes it is
+ * in the other appearance — the exact bug that ships a page white-on-white.
+ *
+ * Every colour is a custom property with a default, so a host that wants its own
+ * palette sets three variables rather than fighting these rules with `!important`.
+ */
+.dark .driver-popover {
+    background-color: var(--filament-tours-surface, #18181b);
+    color: var(--filament-tours-text, #e4e4e7);
+}
+
+.dark .driver-popover-title {
+    color: var(--filament-tours-heading, #fafafa);
+}
+
+.dark .driver-popover-close-btn {
+    color: var(--filament-tours-text, #e4e4e7);
+    opacity: 0.6;
+}
+
+.dark .driver-popover-close-btn:hover,
+.dark .driver-popover-close-btn:focus {
+    color: var(--filament-tours-heading, #fafafa);
+    opacity: 1;
+}
+
+.dark .driver-popover-progress-text {
+    color: var(--filament-tours-text, #e4e4e7);
+    opacity: 0.7;
+}
+
+.dark .driver-popover-footer-btn {
+    background-color: var(--filament-tours-surface, #18181b);
+    color: var(--filament-tours-text, #e4e4e7);
+    border-color: rgb(255 255 255 / 0.2);
+}
+
+.dark .driver-popover-footer-btn:hover,
+.dark .driver-popover-footer-btn:focus {
+    background-color: rgb(255 255 255 / 0.08);
+}
+
+/*
+ * The arrow is a bordered pseudo-element whose four colours driver sets to the
+ * popover's white; only the side facing the popover is visible, so all four are
+ * repainted and the transparent three stay transparent by driver's own rules.
+ */
+.dark .driver-popover-arrow {
+    border-color: var(--filament-tours-surface, #18181b);
+}
+
+.dark .driver-popover-arrow-side-left {
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-right-color: transparent;
+}
+
+.dark .driver-popover-arrow-side-right {
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+}
+
+.dark .driver-popover-arrow-side-top {
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    border-right-color: transparent;
+}
+
+.dark .driver-popover-arrow-side-bottom {
+    border-top-color: transparent;
+    border-left-color: transparent;
+    border-right-color: transparent;
+}

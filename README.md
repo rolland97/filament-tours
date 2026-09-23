@@ -71,7 +71,9 @@ already run it after `composer update`.
 
 **No custom theme is needed.** driver.js and its stylesheet are bundled into the package and
 registered through Filament's asset system, so there is no `@source` line to add and nothing for
-your build to compile. If you have seen those instructions in other Filament plugins, they do not
+your build to compile. A **dark variant** is bundled too, scoped to the `.dark` class Filament
+toggles; override `--filament-tours-surface`, `--filament-tours-text` and `--filament-tours-heading`
+if your palette differs. If you have seen those instructions in other Filament plugins, they do not
 apply here.
 
 **No migration ships with this package**, so there is nothing to publish or run. Where "this user
@@ -178,6 +180,31 @@ Step::make('[data-tour="items"]')
 Using `data-tour` rather than a class or a Filament-generated id means your tours survive a
 restyle, and this package deliberately ships no helpers that know Filament's internal markup —
 they would read better and break on point releases.
+
+### The engine's own buttons
+
+driver.js labels its buttons **Next**, **Previous** and **Done**. If your
+application is translated, those three are the only words on the popover this
+package cannot see — so hand them over:
+
+```php
+FilamentToursPlugin::make()
+    ->buttonLabels([
+        'next' => fn (): string => __('tours.next'),
+        'previous' => fn (): string => __('tours.previous'),
+        'done' => fn (): string => __('tours.done'),
+    ])
+    ->tours([...])
+```
+
+> [!IMPORTANT]
+> **Pass closures if you translate.** A panel is configured *before* any request
+> middleware runs, so `__('tours.next')` evaluated there resolves in your
+> application's default locale and stays there — every reader sees that one
+> language. A closure is resolved when the payload is built, by which time the
+> request's locale is set. Plain strings are fine for wording that never varies.
+
+Keys you leave out keep driver's own defaults. This package ships no wording.
 
 ### Copy and translation
 

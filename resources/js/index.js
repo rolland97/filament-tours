@@ -1,5 +1,7 @@
 import { driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
+// After driver's own stylesheet, so the dark rules win on equal specificity.
+import '../css/dark.css'
 
 /**
  * The second of the two escaping guards, and the load-bearing one.
@@ -31,6 +33,9 @@ export default function filamentTours(payload = {}) {
         panel: payload.panel ?? '',
         debug: payload.debug ?? false,
         seenEndpoint: payload.seenEndpoint ?? null,
+        // Host wording for the engine's own buttons. Undefined keys leave
+        // driver's defaults alone — this package supplies no wording.
+        labels: payload.labels ?? {},
         tours: payload.tours ?? [],
 
         instance: null,
@@ -170,6 +175,7 @@ export default function filamentTours(payload = {}) {
 
             this.instance = driver({
                 steps,
+                ...this.buttonText(),
                 onDestroyed: () => {
                     // Finish and dismiss are the same decision: the user is done.
                     // Navigating away is NOT — they neither finished nor
@@ -186,6 +192,31 @@ export default function filamentTours(payload = {}) {
             })
 
             this.instance.drive()
+        },
+
+        /**
+         * driver's button-text options, omitting any the host did not set.
+         *
+         * Omitted rather than passed as null: driver falls back to its own
+         * default only for a key that is absent, and `undefined` reaching it as
+         * a value renders an empty button.
+         */
+        buttonText() {
+            const options = {}
+
+            if (this.labels.next != null) {
+                options.nextBtnText = this.labels.next
+            }
+
+            if (this.labels.previous != null) {
+                options.prevBtnText = this.labels.previous
+            }
+
+            if (this.labels.done != null) {
+                options.doneBtnText = this.labels.done
+            }
+
+            return options
         },
 
         /**

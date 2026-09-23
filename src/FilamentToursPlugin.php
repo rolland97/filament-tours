@@ -2,6 +2,7 @@
 
 namespace Rolland\FilamentTours;
 
+use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
@@ -14,6 +15,17 @@ class FilamentToursPlugin implements Plugin
 {
     /** @var list<Tour> */
     protected array $tours = [];
+
+    /**
+     * Host wording for the engine's own buttons, or null to leave its defaults.
+     *
+     * @var array{next: (Closure(): string)|string|null, previous: (Closure(): string)|string|null, done: (Closure(): string)|string|null}
+     */
+    protected array $buttonLabels = [
+        'next' => null,
+        'previous' => null,
+        'done' => null,
+    ];
 
     public function getId(): string
     {
@@ -28,6 +40,41 @@ class FilamentToursPlugin implements Plugin
         $this->tours = array_values($tours);
 
         return $this;
+    }
+
+    /**
+     * Wording for the engine's own Next / Previous / Done buttons.
+     *
+     * 🚨 **Pass closures if you translate.** A panel is configured before any
+     * request middleware runs, so `__('...')` evaluated here freezes to the
+     * application's default locale and every reader sees that one language. A
+     * closure is resolved when the payload is built, by which time the request's
+     * locale is set. Plain strings are fine for wording that never varies.
+     *
+     * Unset keys keep the engine's own defaults; this package ships no wording.
+     *
+     * @param  array<string, (Closure(): string)|string|null>  $labels  next, previous, done
+     */
+    public function buttonLabels(array $labels): static
+    {
+        foreach (['next', 'previous', 'done'] as $key) {
+            if (array_key_exists($key, $labels)) {
+                $this->buttonLabels[$key] = $labels[$key];
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array{next: string|null, previous: string|null, done: string|null}
+     */
+    protected function resolveButtonLabels(): array
+    {
+        return array_map(
+            fn (Closure | string | null $label): ?string => $label instanceof Closure ? $label() : $label,
+            $this->buttonLabels,
+        );
     }
 
     /**
@@ -124,6 +171,9 @@ class FilamentToursPlugin implements Plugin
                 'seenEndpoint' => $this->hasServerDriver()
                     ? route("filament.{$panel->getId()}.filament-tours.seen", ['tour' => '__TOUR__'])
                     : null,
+                // Resolved here, at render, which is the whole point — see
+                // buttonLabels().
+                'labels' => $this->resolveButtonLabels(),
                 'tours' => array_map(
                     fn (Tour $tour): array => $this->describe($tour),
                     $registry->resolveFor($scopes),
