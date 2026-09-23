@@ -2,6 +2,7 @@
 
 namespace Rolland\FilamentTours;
 
+use Closure;
 use InvalidArgumentException;
 
 /**
@@ -18,9 +19,11 @@ final class Step
 
     public const ALIGNMENTS = ['start', 'center', 'end'];
 
-    protected ?string $title = null;
+    /** @var (Closure(): string)|string|null */
+    protected Closure | string | null $title = null;
 
-    protected ?string $body = null;
+    /** @var (Closure(): string)|string|null */
+    protected Closure | string | null $body = null;
 
     protected ?string $side = null;
 
@@ -37,14 +40,31 @@ final class Step
         return new self($selector);
     }
 
-    public function title(string $title): static
+    /**
+     * The heading, as a string or as a closure resolved when the step is read.
+     *
+     * 🚨 **Pass a closure if you translate.** A Filament panel is configured
+     * before any request middleware runs, so `__('...')` evaluated at
+     * declaration resolves in the application's default locale and stays there —
+     * every reader sees that one language whatever their preference. A closure
+     * is resolved when the payload is built, by which point the request's locale
+     * is set. Plain strings remain right for wording that never varies.
+     *
+     * @param  (Closure(): string)|string  $title
+     */
+    public function title(Closure | string $title): static
     {
         $this->title = $title;
 
         return $this;
     }
 
-    public function body(string $body): static
+    /**
+     * The body copy. Takes a closure for the same reason as {@see title()}.
+     *
+     * @param  (Closure(): string)|string  $body
+     */
+    public function body(Closure | string $body): static
     {
         $this->body = $body;
 
@@ -88,12 +108,20 @@ final class Step
 
     public function getTitle(): ?string
     {
-        return $this->title;
+        return $this->resolve($this->title);
     }
 
     public function getBody(): ?string
     {
-        return $this->body;
+        return $this->resolve($this->body);
+    }
+
+    /**
+     * @param  (Closure(): string)|string|null  $copy
+     */
+    protected function resolve(Closure | string | null $copy): ?string
+    {
+        return $copy instanceof Closure ? $copy() : $copy;
     }
 
     public function getSide(): ?string
