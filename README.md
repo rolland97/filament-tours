@@ -48,8 +48,8 @@ That is the whole installation. `filament:assets` is Filament's own step, and mo
 already run it after `composer update`.
 
 > [!IMPORTANT]
-> **Not on Packagist yet, so the command above does not resolve today.** No version has been
-> tagged. Until one is, point Composer at the repository directly:
+> **Tagged `v1.0.0`, but not submitted to Packagist yet**, so `composer require` does not resolve
+> from the default repository. Point Composer at this repository:
 >
 > ```jsonc
 > // composer.json
@@ -59,15 +59,18 @@ already run it after `composer update`.
 > ```
 >
 > ```bash
-> composer require rolland97/filament-tours:dev-main@dev
+> composer require rolland97/filament-tours:^1.0
 > php artisan filament:assets
 > ```
 >
-> The hold is deliberate rather than a gap in the work: publishing a version cannot be undone,
-> and building a real application against the package *before* it is tagged is how we find out
-> whether the v1 API survives contact with use. Everything below describes the package as it
-> stands on `main` — it is complete and tested, not a preview. The Packagist badges above will
-> stay blank until the first release.
+> ⚠️ **Prefer the tag to `dev-main`.** Filament versions package assets as `?v={package version}`,
+> so a consumer tracking a branch keeps one unchanging version string and updated assets sit behind
+> URLs the browser already holds until it revalidates. A real version per release restores that.
+>
+> The hold before v1.0.0 was deliberate rather than a gap in the work: publishing a version cannot
+> be undone, and building a real application against the package first is how we found out whether
+> the v1 API survived contact with use. It did not, entirely — four releases' worth of gaps came out
+> of that first consumer, and they are in the changelog.
 
 **No custom theme is needed.** driver.js and its stylesheet are bundled into the package and
 registered through Filament's asset system, so there is no `@source` line to add and nothing for

@@ -2,7 +2,11 @@
 
 All notable changes to `filament-tours` will be documented in this file.
 
-## Unreleased
+## 1.0.0 - 2026-09-23
+
+First release. v1 was written in August 2026 and deliberately held back until a real application
+had been built against it — the entries below are what that application found, and each one is a
+gap no test in this repository could have reported.
 
 - **`Step::title()` and `->body()` accept closures**, resolved when the payload is built. A panel
   is configured before request middleware runs, so copy declared with `__()` froze to the
@@ -34,6 +38,8 @@ All notable changes to `filament-tours` will be documented in this file.
   in, and blocks the automated journeys that walk those pages. `tours:list` reports it as
   `starts: when asked`.
 
-## 1.0.0 - 202X-XX-XX
+## Before 1.0.0
 
-- initial release
+- The v1 design: tours declared on the panel, `Tour`/`Step`, run-once with a browser-local default
+  and a server-side `TourState` contract, replay via `StartTourAction` or a DOM event, steps that
+  skip a missing target, and a bundled engine so a host configures no bundler.
