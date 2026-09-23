@@ -33,3 +33,24 @@ it('registers the tour engine stylesheet against a file that exists', function (
     expect($path)->not->toBeNull()
         ->and(file_exists($path))->toBeTrue("Stylesheet missing on disk: {$path}");
 });
+
+it('ships a dark variant for the popover, scoped to the class Filament toggles', function () {
+    /*
+     * FR-032: the tour engine paints its popover white and offers no dark mode,
+     * so on a dark panel it arrives as a white card. Found by looking at a real
+     * application; nothing in a test suite renders a colour.
+     *
+     * ⚠️ `.dark`, never `@media (prefers-color-scheme: dark)`. Filament keeps the
+     * chosen appearance in localStorage and toggles `.dark` on <html>, so a media
+     * query paints for the operating system while the panel believes otherwise.
+     * This asserts the built stylesheet, not the source, because the built file
+     * is what a consumer serves — an import dropped from the entry point would
+     * leave the source rules right and the shipped file wrong.
+     */
+    $styles = FilamentAsset::getStyles(['rolland97/filament-tours']);
+
+    $css = file_get_contents(reset($styles)->getPath());
+
+    expect($css)->toContain('.dark .driver-popover')
+        ->and($css)->not->toContain('prefers-color-scheme');
+});

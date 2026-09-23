@@ -6,7 +6,7 @@ use Rolland\FilamentTours\Tests\Panel\Pages\PageB;
 it('carries the fields the payload contract promises', function () {
     $payload = payloadFrom(PageA::getUrl());
 
-    expect($payload)->toHaveKeys(['panel', 'debug', 'seenEndpoint', 'tours'])
+    expect($payload)->toHaveKeys(['panel', 'debug', 'seenEndpoint', 'labels', 'tours'])
         ->and($payload['panel'])->toBe('testing')
         ->and($payload['debug'])->toBeBool()
         ->and($payload['tours'])->toBeArray();
@@ -33,6 +33,39 @@ it('describes a matching tour in full', function () {
         ->and($tour['steps'][0]['selector'])->toBe('[data-tour="thing"]')
         ->and($tour['steps'][0]['title'])->toBe('Thing')
         ->and($tour['steps'][1]['side'])->toBe('left');
+});
+
+it('sends no button labels unless the host sets them', function () {
+    // FR-031: the engine's own defaults stand until a host overrides them. The
+    // package ships no wording of its own here either.
+    expect(payloadFrom(PageA::getUrl())['labels'])->toBe([
+        'next' => null,
+        'previous' => null,
+        'done' => null,
+    ]);
+});
+
+it('resolves host button labels when it renders, not when they are declared', function () {
+    /*
+     * 🚨 The reason this is a closure and not a string: a panel is configured
+     * BEFORE any request middleware runs, so a label passed as __('...') freezes
+     * to the application's default locale and every reader sees that one. A host
+     * that hands over a closure gets it resolved here, per request, in whatever
+     * locale is current by then.
+     */
+    app('filament')->getPanel('testing')->getPlugin('filament-tours')->buttonLabels([
+        'next' => fn (): string => 'Seterusnya-' . app()->getLocale(),
+        'previous' => 'Sebelumnya',
+        'done' => fn (): string => 'Selesai',
+    ]);
+
+    app()->setLocale('ms');
+
+    expect(payloadFrom(PageA::getUrl())['labels'])->toBe([
+        'next' => 'Seterusnya-ms',
+        'previous' => 'Sebelumnya',
+        'done' => 'Selesai',
+    ]);
 });
 
 it('sends an empty tour list on a page nothing targets', function () {
