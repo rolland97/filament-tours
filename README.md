@@ -218,6 +218,13 @@ Step::make('#data\\.title')
 
 No language files ship with this package, and it will never own your wording.
 
+## Accessibility
+
+The tour engine marks the element it highlights with `aria-haspopup`, `aria-expanded` and
+`aria-controls`. Those attributes are only valid on certain roles, so this package removes them
+again from elements that cannot carry them — otherwise every page with a running tour fails an
+`aria-allowed-attr` audit, and a highlighted `<div>` is the ordinary case rather than the exception.
+
 ## When a tour cannot find its target
 
 A step whose selector matches nothing is **skipped**, and the rest of the tour still runs. Users

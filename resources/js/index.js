@@ -40,6 +40,8 @@ export default function filamentTours(payload = {}) {
 
         instance: null,
         teardown: null,
+        teardownObserver: null,
+        finished: false,
         onStartRequest: null,
         suppressSeen: false,
         // Tours whose seen-write failed. In memory only: this page session, no
@@ -173,25 +175,118 @@ export default function filamentTours(payload = {}) {
 
             this.stopTour()
 
+            // One run, one recording, whichever path ends it first.
+            this.finished = false
+
+            const finish = () => {
+                if (this.finished) {
+                    return
+                }
+
+                this.finished = true
+
+                // Finish and dismiss are the same decision: the user is done.
+                // Navigating away is NOT — they neither finished nor dismissed
+                // it, so a run-once tour must still be offered next visit
+                // (FR-012). A replay is already seen; re-recording it is a
+                // wasted write, and under a server driver a wasted request.
+                if (! this.suppressSeen && ! replay) {
+                    this.markSeen(tour)
+                }
+
+                this.stopWatchingForTeardown()
+                this.instance = null
+            }
+
             this.instance = driver({
                 steps,
                 ...this.buttonText(),
-                onDestroyed: () => {
-                    // Finish and dismiss are the same decision: the user is done.
-                    // Navigating away is NOT — they neither finished nor
-                    // dismissed it, so a run-once tour must still be offered
-                    // next visit (FR-012).
-                    // A replay is already seen; re-recording it is a wasted
-                    // write, and under a server driver a wasted request.
-                    if (! this.suppressSeen && ! replay) {
-                        this.markSeen(tour)
-                    }
-
-                    this.instance = null
-                },
+                onDestroyed: finish,
             })
 
+            /*
+             * Armed BEFORE drive(), because it has two jobs and one starts at
+             * once.
+             *
+             * The engine fires onDestroyed only once the state it sets at the
+             * end of its opening sequence is in place — roughly its animation
+             * duration after the tour starts. A reader who dismisses before
+             * that gets a closed tour and NO recording, so a run-once tour
+             * comes back on the next visit. Watching for the popover leaving
+             * the document catches every path the engine might take, including
+             * the one where its own hook never runs.
+             */
+            this.watchForTeardown(finish)
+
             this.instance.drive()
+        },
+
+        /**
+         * Repair the ARIA the engine writes onto whatever it highlights.
+         *
+         * It sets aria-haspopup, aria-expanded and aria-controls on the
+         * highlighted element unconditionally. Those are valid on a handful of
+         * widget roles and on nothing else, so on the ordinary target — a div, a
+         * section, a table — they are a CRITICAL axe violation
+         * (aria-allowed-attr), and an accessibility audit of any page carrying a
+         * running tour fails because of them.
+         *
+         * Kept where the element's role permits them, removed where it does not.
+         * Removing is the conservative half: an element that cannot legally
+         * announce a popup announces nothing, which is what it did before the
+         * tour started.
+         */
+        repairAria(element) {
+            if (! element || element.getAttribute('aria-haspopup') !== 'dialog') {
+                return
+            }
+
+            const role = element.getAttribute('role')
+            const tag = element.tagName.toLowerCase()
+
+            const permitted = role
+                ? ['button', 'combobox', 'gridcell', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'row', 'searchbox', 'slider', 'spinbutton', 'textbox', 'treeitem', 'application'].includes(role)
+                : ['button', 'a', 'input', 'select', 'textarea', 'summary'].includes(tag)
+
+            if (permitted) {
+                return
+            }
+
+            element.removeAttribute('aria-haspopup')
+            element.removeAttribute('aria-expanded')
+            element.removeAttribute('aria-controls')
+        },
+
+        watchForTeardown(finish) {
+            this.stopWatchingForTeardown()
+
+            this.teardownObserver = new MutationObserver(() => {
+                // Repair first. The attributes are written the moment an element
+                // is highlighted, and this callback runs before anything else can
+                // read them. The engine's own onHighlighted hook is NOT usable
+                // for the job: it fires only when the opening animation ENDS,
+                // leaving invalid ARIA on the page for that whole window — which
+                // is exactly when an accessibility audit would find it.
+                document.querySelectorAll('.driver-active-element').forEach((element) => this.repairAria(element))
+
+                if (! document.querySelector('.driver-popover')) {
+                    finish()
+                }
+            })
+
+            this.teardownObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['aria-haspopup', 'aria-expanded', 'aria-controls', 'class'],
+            })
+        },
+
+        stopWatchingForTeardown() {
+            if (this.teardownObserver) {
+                this.teardownObserver.disconnect()
+                this.teardownObserver = null
+            }
         },
 
         /**
@@ -226,8 +321,11 @@ export default function filamentTours(payload = {}) {
          */
         stopTour() {
             if (this.instance) {
-                // Tell onDestroyed this is our teardown, not the user finishing.
+                // Tell the finish path this is our teardown, not the user
+                // finishing. The observer sees the same removal, so it has to be
+                // suppressed for the same reason and at the same moment.
                 this.suppressSeen = true
+                this.stopWatchingForTeardown()
                 this.instance.destroy()
                 this.suppressSeen = false
                 this.instance = null
