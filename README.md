@@ -134,8 +134,8 @@ That is all of it. Nothing else is public in v1.
 | Method | Effect |
 |---|---|
 | `Step::make(string $selector)` | A raw CSS selector for the element to highlight. |
-| `->title(string)` | Heading text. |
-| `->body(string)` | Body text. |
+| `->title(Closure\|string)` | Heading text, or a closure resolved at render. |
+| `->body(Closure\|string)` | Body text, or a closure resolved at render. |
 | `->side('top'\|'right'\|'bottom'\|'left')` | Which side of the element the popover sits on. |
 | `->align('start'\|'center'\|'end')` | How the popover aligns along that side. |
 
@@ -212,9 +212,16 @@ Copy is plain strings, so translate it however your application already does:
 
 ```php
 Step::make('#data\\.title')
-    ->title(__('tours.request.title.heading'))
-    ->body(__('tours.request.title.body'))
+    ->title(fn (): string => __('tours.request.title.heading'))
+    ->body(fn (): string => __('tours.request.title.body'))
 ```
+
+> [!IMPORTANT]
+> **Pass closures if you translate.** A panel is configured *before* any request
+> middleware runs, so `__('tours.request.title.heading')` evaluated there resolves in your
+> application's default locale and stays there — every reader sees that one language,
+> whatever their preference. A closure is resolved when the payload is built, by which
+> point the request's locale is set. Plain strings are right for wording that never varies.
 
 No language files ship with this package, and it will never own your wording.
 

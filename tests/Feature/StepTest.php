@@ -9,6 +9,36 @@ it('keeps the selector it was made with', function () {
     expect(Step::make('[data-tour="thing"]')->getSelector())->toBe('[data-tour="thing"]');
 });
 
+it('resolves copy when it is read, not when it is declared', function () {
+    /*
+     * 🚨 The reason this exists. A Filament panel is configured BEFORE any
+     * request middleware runs, so a step declared with __('...') resolves in the
+     * application's default locale and stays there — every reader sees that one
+     * language, whatever their preference. A closure is resolved when the
+     * payload is built, by which point the request's locale is set.
+     *
+     * Consumers were writing a middleware to rebuild their tours for this. They
+     * should not have to.
+     */
+    app()->setLocale('en');
+
+    $step = Step::make('#a')
+        ->title(fn (): string => 'Title in ' . app()->getLocale())
+        ->body(fn (): string => 'Body in ' . app()->getLocale());
+
+    app()->setLocale('ms');
+
+    expect($step->getTitle())->toBe('Title in ms')
+        ->and($step->getBody())->toBe('Body in ms');
+});
+
+it('still takes plain strings, for wording that never varies', function () {
+    $step = Step::make('#a')->title('Fixed')->body('Also fixed');
+
+    expect($step->getTitle())->toBe('Fixed')
+        ->and($step->getBody())->toBe('Also fixed');
+});
+
 it('defaults every optional field to null', function () {
     $step = Step::make('#a');
 

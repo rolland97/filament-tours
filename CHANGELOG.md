@@ -4,6 +4,11 @@ All notable changes to `filament-tours` will be documented in this file.
 
 ## Unreleased
 
+- **`Step::title()` and `->body()` accept closures**, resolved when the payload is built. A panel
+  is configured before request middleware runs, so copy declared with `__()` froze to the
+  application's default locale and every reader saw that one language; hosts were writing a
+  middleware to rebuild their tours because of it. Plain strings still work unchanged.
+
 - **Fixed: the engine's ARIA is repaired on elements that cannot carry it.** driver.js sets
   `aria-haspopup`, `aria-expanded` and `aria-controls` on whatever it highlights; those are valid on
   a handful of widget roles and on nothing else, so on the ordinary target — a div, a section, a
